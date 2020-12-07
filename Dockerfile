@@ -4,7 +4,7 @@ EXPOSE 30865
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN apk add --no-cache csync2 git su-exec
+RUN apk add --no-cache csync2 git su-exec sqlite-dev
 
 RUN go get github.com/liujianping/job
 
