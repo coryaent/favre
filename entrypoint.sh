@@ -14,3 +14,4 @@ chown -R user:user /sync
 
 su-exec user:user /usr/sbin/csync2 -ii &
 su-exec user:user "$@"
+su-exec user:user tail -f /dev/null
