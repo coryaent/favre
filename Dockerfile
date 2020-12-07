@@ -9,6 +9,7 @@ RUN apk add --no-cache csync2 git su-exec sqlite-dev
 RUN go get github.com/liujianping/job
 
 RUN chmod 777 /etc/csync2 && \
+    chmod 777 /var/lib/csync2 && \
     chmod +x /usr/local/bin/entrypoint.sh
 
 VOLUME ["/sync"]
