@@ -12,4 +12,5 @@ adduser -u ${USER_ID} -D -H -G user user
 # change ownership of the mounted volume in the container
 chown -R user:user /sync
 
+su-exec user:user /usr/sbin/csync2 -ii &
 su-exec user:user "$@"
