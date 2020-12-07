@@ -11,6 +11,8 @@ RUN go get github.com/liujianping/job
 RUN chmod 777 /etc/csync2 && \
     chmod +x /usr/local/bin/entrypoint.sh
 
+VOLUME ["/sync"]
+
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD ["job", "-h"]
