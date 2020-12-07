@@ -1,5 +1,7 @@
 FROM golang:alpine
 
+EXPOSE 30865
+
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN apk add --no-cache csync2 git su-exec && \
