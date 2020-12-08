@@ -1,16 +1,19 @@
-FROM golang:alpine
+FROM golang:buster
 
 EXPOSE 30865
 
-RUN apk add --no-cache csync2 git su-exec sqlite-dev
+RUN apt-get update && apt-get install -y csync2 gosu libsqlite3-0
 
 RUN go get github.com/liujianping/job
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod 777 /etc/csync2 && \
+RUN mkdir /etc/csync2 && \
+    chmod 777 /etc/csync2 && \
     chmod 777 /var/lib/csync2 && \
     chmod +x /usr/local/bin/entrypoint.sh
+
+ENV CSYNC2_SYSTEM_DIR /etc/csync2
 
 VOLUME ["/sync"]
 
