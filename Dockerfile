@@ -2,7 +2,7 @@ FROM golang:buster
 
 EXPOSE 30865
 
-RUN apt-get update && apt-get install -y csync2 gosu libsqlite3-0
+RUN apt-get update && apt-get install -y csync2 gosu libsqlite3-0 dnsutils
 
 RUN go get github.com/liujianping/job
 
