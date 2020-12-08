@@ -23,5 +23,5 @@ done
 
 printf "Starting Csync2 on %s...\n" $(hostname)
 gosu user:user /usr/sbin/csync2 -ii -N $(hostname) &
-sleep 5
+sleep 15
 gosu user:user "$@"
