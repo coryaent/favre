@@ -17,7 +17,7 @@ chown -R user:user /sync
 for i in $(echo $HOSTS | tr ',' '\n')
 do
         if [ "$(hostname)" != "$i" ]; then
-                printf "%s\t%s\n" $(dig +short $i) $i
+                printf "%s\t%s\n" $(dig +short $i) $i >> /etc/hosts
         fi
 done
 
