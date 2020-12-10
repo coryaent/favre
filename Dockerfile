@@ -1,12 +1,14 @@
-FROM golang:buster
+FROM node:12-buster
+
+EXPOSE 30864
 
 EXPOSE 30865
 
-RUN apt-get update && apt-get install -y csync2 gosu libsqlite3-0 dnsutils
-
-RUN go get github.com/liujianping/job
+RUN apt-get update && apt-get install -y csync2 gosu libsqlite3-0
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+COPY nsswitch.conf /etc/nsswitch.conf
 
 RUN mkdir /etc/csync2 && \
     chmod 777 /etc/csync2 && \
@@ -18,5 +20,3 @@ ENV CSYNC2_SYSTEM_DIR /etc/csync2
 VOLUME ["/sync"]
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
-CMD ["job", "-h"]
