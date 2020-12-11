@@ -64,7 +64,7 @@ module.exports.daemon = {
 };
 
 module.exports.sync = () => {
-    cfg.hosts = Array.from (hosts);
+    cfg.hosts = Array.from (hosts.values());
     fs.writeFileSync (
         '/run/csync2/csync2.cfg',
         Mustache.render (cfgTemplate, cfg)

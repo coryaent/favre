@@ -19,7 +19,10 @@ const Initialization = new EventEmitter ()
 });
 
 // watch filesystem for changes
-const watcher = watch('/sync', { recursive: true })
+const watcher = watch('/sync', { 
+    recursive: true,
+    delay: 2000
+})
 .on ('change', function () {
     // ignore events if initializing
     if (!INITIALIZING) {
