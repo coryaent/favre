@@ -1,46 +1,41 @@
 "use strict";
 
-const os = require ('os');
 const { sleep } = require ('sleepjs');
 const EventEmitter = require ('events');
 
 const watch = require ('node-watch');
 const Discover = require ('node-discover');
 
-// track which hosts are connected
-const knownHosts = new Set ([os.hostname()]);
-
+// start the csync2 daemon
 const Csync2 = require ('./csync2.js');
+Csync2.daemon.start ();
 
 // track initialization
 var INITIALIZING = true;
 const Initialization = new EventEmitter ()
 .on ('done', () => {
     INITIALIZING = false;
-    if (knownHosts.size <= 1) {
-        console.error ('Could not find any peers.');
-        exit (1);
-    };
+    Csync2.sync ();
 });
 
 // watch filesystem for changes
-const watcher = watch(SYNC_DIR, { recursive: true })
+const watcher = watch('/sync', { recursive: true })
 .on ('change', function () {
     // ignore events if initializing
     if (!INITIALIZING) {
-       Csync2.sync (knownHosts);
+       Csync2.sync ();
     };
 })
 .on ('error', function (error) {
     console.error (error);
-    exit (1);
+    process.exitCode = 1;
 });
 
 // automatic peer discovery
 const cluster = new Discover ({
     helloInterval: 1 * 1000,
     checkInterval: 2 * 2000,
-    nodeTimeout: 10 * 1000,
+    nodeTimeout: 30 * 1000,
     address: '0.0.0.0',
     port: 30864,
 }, async (error) => {
@@ -48,12 +43,25 @@ const cluster = new Discover ({
     if (error) {
         console.error ('Could not start peer discovery.');
         console.error (error);
-        process.exit (1);
+        process.exitCode = 1;
     };
     // looking for peers
     console.log ('Started peer discovery, looking for peers...');
-    await sleep (30 * 1000);
-    Initialization.emit ('done');
+    const retries = 3; let attempt = 0;
+    while ((Csync2.hosts.size <= 1) && (attempt <= retries)) {
+        // backoff
+        await sleep ( (attempt ? attempt : 1) * 20 * 1000);
+        if (Csync2.hosts.size <= 1) {
+            attempt++;
+            console.log (`No peers found. Retrying (${attempt}/${retries})...`);
+        };
+    };
+    // either move on or quit
+    if (Csync2.hosts.size > 1) {
+        Initialization.emit ('done');
+    } else {
+        process.kill (process.pid);
+    };
 
 })
 .on ('added', function (node) {
@@ -70,77 +78,30 @@ const cluster = new Discover ({
     console.log (`Host ${node.hostName} discovered, adding to known hosts...`);
     // initial discovery of peers
     if (INITIALIZING) {
-        knownHosts.add (node.hostName);
+        Csync2.hosts.add (node.hostName);
     } else {
-        // update the config and flush the db if host is not known
-        if (!knownHosts.has (node.hostName)) {
-            knownHosts.add (node.hostName);
-            Csync2.sync (knownHosts);
+        // sync to new host if unknown
+        if (!Csync2.hosts.has (node.hostName)) {
+            Csync2.hosts.add (node.hostName);
+            Csync2.sync ();
         };
     };
 })
 .on ('removed', function (node) {
     console.log (`Host ${node.hostName} lost.`);
-    knownHosts.delete (node.hostName);
-    Csync2.flush (knownHosts);
+    Csync2.hosts.delete (node.hostName);
+    Csync2.flush ();
 });
 
-
-// graceful exit
-async function exit (_code) {
-    // check that code is passed and a valid number
-    var code = 0;
-    if (_code !== undefined && typeof _code === Number) {
-        code = _code;
-    };
-
-    console.log ('Shutting down...');
-
-    if (watcher) {
-        console.log ('Stopping directory watcher...');
-        try {
-            await watcher.close();
-            console.log ('Directory watcher stopped.');
-        } catch (error) {
-            console.error ('Error stopping directory watcher.')
-            console.error (error);
-            code++;
-        };
-    };
-
-    if (cluster) {
-        console.log ('Stopping automatic discovery...');
-        try {
-            await cluster.stop();
-            console.log ('Automatic discovery stopped.');
-        } catch (error) {
-            console.error ('Error stopping automatic discovery.')
-            console.error (error);
-            code++;
-        };
-    };
-
-    if (Csync2.daemon) {
-        console.log ('Stopping Csync2 daemon...');
-        // should output something
-        try {
-            await Csync2.daemon.kill();
-        } catch (error) {
-            console.error (error);
-            code++;
-        };
-    };
-
-    await sleep (500);
-
-    process.exit (code);
-};
-
+// exit
 process.on ('SIGINT', () => {
     console.info ('SIGINT ignored.');
 });
 
 process.on ('SIGTERM', () => {
-    console.info ('SIGTERM received.');
-    exit ();
+    console.log ('SIGTERM received.');
+    console.log ('Shutting down...');
+    watcher.close ();
+    cluster.stop ();
+    Csync2.daemon.kill ();
 });

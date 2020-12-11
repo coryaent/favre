@@ -1,7 +1,16 @@
 "use strict";
 
+const os = require ('os');
 const fs = require ('fs');
-const { spawn, execSync } = require ('child_process');
+const { spawn, execFileSync, execSync } = require ('child_process');
+
+// make relevent directory and chown
+try {
+    execFileSync ('make_and_take');
+} catch (error) {
+    console.error ('Error in native initialization binary.');
+    process.exitCode = 1;
+};
 
 const cfgTemplate = `
 no ssl * *;
@@ -14,9 +23,11 @@ group syncronization {
 
     key {{key}};
 
-    include {{include}};
+    include /sync;
 
-    exclude {{exclude}};
+    {{#excludes}}
+    exclude {{.}};
+    {{/excludes}}
 
     auto younger;
 }
@@ -28,60 +39,62 @@ Mustache.parse (cfgTemplate);
 // keep DB in RAM
 const DB_FLAG = '-D /run/csync2/db';
 
+// track which hosts are online
+const hosts = new Set ([os.hostname()]);
+module.exports.hosts = hosts;
+
 // config
-process.env.CSYNC2_SYSTEM_DIR = '/run/csync2';
-const cfg = {
-    hosts: [],
+process.env.CSYNC2_SYSTEM_DIR = '/run/csync2'; // make sure this is set
+const cfg = {    
     key: process.env.KEY_FILE ? process.env.KEY_FILE : '/run/secrets/csync2.psk',
-    include: process.env.SYNC_DIR ? process.env.SYNC_DIR : '/sync',
-    exclude: process.env.EXCLUDE,
+    excludes: process.env.EXCLUDE,
 };
 
-module.exports = {
-    daemon: {
-        start: spawn ('csync2', ['ii', 'vv'])
-        .stdout.on ('data', (data) => {
-            console.log (data);
-        })
-        .stderr.on ('data', (data) => {
-            console.error (data);
+module.exports.daemon = {
+    start: () => {
+        return spawn ('csync2', ['-ii', '-vv'], {
+            stdio: ['ignore', 'inherit', 'inherit']
         })
         .on ('error', (error) => {
             console.error ('Failed to start Csync2 subprocess.');
             console.error (error);
-            process.exit (1);
-        })
-    },
-    sync: (hosts) => {
-        cfg.hosts = Array.from (hosts.values());
-        fs.writeFileSync (
-            '/run/csync2/csync2.cfg',
-            Mustache.render (cfgTemplate, cfg)
-        );
-        const cmd = (`csync2 -R ${DB_FLAG}`);
-        console.log (`Running ${cmd}`);
-        execSync (cmd, (error, stdout, stderr) => {
-            if (error) {
-                console.error (error);
-                return;
-            };
-            console.log (stdout);
-            console.error (stderr);
-        });
-    },
-    flush: (hosts) => {
-        cfg.hosts = Array.from (hosts.values());
-        fs.writeFileSync (
-            '/run/csync2/csync2.cfg',
-            Mustache.render (cfgTemplate, cfg)
-        );
-        execSync (cmd, (error, stdout, stderr) => {
-            if (error) {
-                console.error (error);
-                return;
-            };
-            console.log (stdout);
-            console.error (stderr);
+            process.exitCode = 1;
         });
     }
+};
+
+module.exports.sync = () => {
+    cfg.hosts = Array.from (hosts);
+    fs.writeFileSync (
+        '/run/csync2/csync2.cfg',
+        Mustache.render (cfgTemplate, cfg)
+    );
+    const cmd = (`csync2 -x -r -v ${DB_FLAG}`);
+    console.log (`Running ${cmd}...`);
+    execSync (cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error (error);
+            return;
+        };
+        console.log (stdout);
+        console.error (stderr);
+    });
+};
+
+module.exports.flush = () => {
+    cfg.hosts = Array.from (hosts.values());
+    fs.writeFileSync (
+        '/run/csync2/csync2.cfg',
+        Mustache.render (cfgTemplate, cfg)
+    );
+    const cmd = (`csync2 -R ${DB_FLAG}`);
+    console.log (`Running ${cmd}...`);
+    execSync (cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error (error);
+            return;
+        };
+        console.log (stdout);
+        console.error (stderr);
+    });
 };
