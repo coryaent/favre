@@ -2,8 +2,8 @@
 set -e
 
 # read env files or load defaults
-USER_ID=${UID:-1000}
-GROUP_ID=${GID:-1000}
+USER_ID=${UID:-1001}
+GROUP_ID=${GID:-1001}
 
 # create new user and group with specified id's
 groupadd --gid ${GROUP_ID} user
