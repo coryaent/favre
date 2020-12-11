@@ -1,42 +1,42 @@
 "use strict";
 
-const fs = require ('fs');
 const os = require ('os');
-const { spawn, exec } = require ('child_process');
 const { sleep } = require ('sleepjs');
+const EventEmitter = require ('events');
 
-const Discover = require ('node-discover');
 const watch = require ('node-watch');
+const Discover = require ('node-discover');
 
-import Hosts from 'hosts-so-easy';
-const Mustache = require ('mustache');
-Mustache.parse (cfgTemplate);
+// track which hosts are connected
+const knownHosts = new Set ([os.hostname()]);
 
-var INITIALIZING = false;
+const Csync2 = require ('./csync2.js');
 
-const knownHosts = new Map ();
-// hostname -> {
-//     online: true || false,
-//     ip: 'x.x.x.x'
-// }
-
-const hostsFile = new Hosts ({
-    atomicWrites: false,
-    header: require ('./package.json').npm_package_name
-})
-.on ('updateStart', () => {
-    console.log ('Updates to /etc/hosts are pending...');
-})
-.on ('updateFinished', (error) => {
-    if (!error) {
-        console.log ('Successfully updated /etc/hosts.');
-    } else {
-        console.error (error);
+// track initialization
+var INITIALIZING = true;
+const Initialization = new EventEmitter ()
+.on ('done', () => {
+    INITIALIZING = false;
+    if (knownHosts.size <= 1) {
+        console.error ('Could not find any peers.');
         exit (1);
     };
 });
 
-var peers = 0;
+// watch filesystem for changes
+const watcher = watch(SYNC_DIR, { recursive: true })
+.on ('change', function () {
+    // ignore events if initializing
+    if (!INITIALIZING) {
+       Csync2.sync (knownHosts);
+    };
+})
+.on ('error', function (error) {
+    console.error (error);
+    exit (1);
+});
+
+// automatic peer discovery
 const cluster = new Discover ({
     helloInterval: 1 * 1000,
     checkInterval: 2 * 2000,
@@ -52,13 +52,8 @@ const cluster = new Discover ({
     };
     // looking for peers
     console.log ('Started peer discovery, looking for peers...');
-    INITIALIZING = true;
     await sleep (30 * 1000);
-    // add discovered peers to /etc/hosts
-
-    // add this host and peers to config
-
-    // start Csync2 background process
+    Initialization.emit ('done');
 
 })
 .on ('added', function (node) {
@@ -72,61 +67,24 @@ const cluster = new Discover ({
     //     id: '31d39c91d4dfd7cdaa56738de8240bc4',
     //     hostName : 'myMachine'
     // }
-    console.log (`Host ${node.hostName} with ip ${node.address} discovered.`);
+    console.log (`Host ${node.hostName} discovered, adding to known hosts...`);
     // initial discovery of peers
     if (INITIALIZING) {
-        knownHosts.set (node.hostName, {
-            online: true,
-            ip: node.address
-        });
-        console.log (`Adding ${node.hostName}@${node.address} to /etc/hosts...`);
-        hostsFile.add (node.adddress, node.hostName);
-        peers++;
+        knownHosts.add (node.hostName);
     } else {
-        // if the host is in the csync.cfg, upq
+        // update the config and flush the db if host is not known
+        if (!knownHosts.has (node.hostName)) {
+            knownHosts.add (node.hostName);
+            Csync2.sync (knownHosts);
+        };
     };
 })
 .on ('removed', function (node) {
-	console.log (`Host ${node.hostName} lost.`);
+    console.log (`Host ${node.hostName} lost.`);
+    knownHosts.delete (node.hostName);
+    Csync2.flush (knownHosts);
 });
 
-// launch csync2 background process
-const csync2 = spawn ('csync2', ['ii', 'vv'])
-.stdout.on ('data', (data) => {
-    console.log (data);
-})
-.stderr.on ('data', (data) => {
-    console.error (data);
-})
-.on ('close', (code) => {
-    console.log (`Csync2 exited with code ${code}.`);
-})
-.on ('error', (error) => {
-    console.error ('Failed to start Csync2 subprocess.');
-    console.error (error);
-    process.exit (1);
-});
-
-// run csync2 sync command
-exec ('csync2 -x -r -v', (error, stdout, stderr) => {
-    if (error) {
-        console.error (error);
-        return;
-    }
-    console.log (stout);
-    console.error (stderr);
-});
-
-// watch filesystem for changes
-const watcher = watch('./', { recursive: true });
-
-watcher.on ('change', function (event, name) {
-  // callback
-});
-
-watcher.on ('error', function (error) {
-  // handle error
-});
 
 // graceful exit
 async function exit (_code) {
@@ -162,11 +120,11 @@ async function exit (_code) {
         };
     };
 
-    if (csync2) {
+    if (Csync2.daemon) {
         console.log ('Stopping Csync2 daemon...');
         // should output something
         try {
-            await csync2.kill();
+            await Csync2.daemon.kill();
         } catch (error) {
             console.error (error);
             code++;
@@ -178,30 +136,11 @@ async function exit (_code) {
     process.exit (code);
 };
 
+process.on ('SIGINT', () => {
+    console.info ('SIGINT ignored.');
+});
+
 process.on ('SIGTERM', () => {
     console.info ('SIGTERM received.');
     exit ();
 });
-
-const cfgTemplate = `
-no ssl * *;
-
-group syncronization {
-    
-    {{#hosts}}
-    host {{.}};
-    {{/hosts}}
-
-    key {{key}};
-
-    {{#includes}}
-    include {{.}};
-    {{/includes}}
-
-    {{#excludes}}
-    exclude {{.}};
-    {{/excludes}}
-
-    auto younger;
-}
-`;
