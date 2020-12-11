@@ -9,7 +9,9 @@ RUN apt-get update && apt-get install -y csync2 gosu libsqlite3-0
 
 # install node.js application
 WORKDIR /usr/src/app
-COPY ["package*.json", "csync2.js", "index.js", "./"]
+COPY package*.json ./
+RUN npm install
+COPY  ["csync2.js", "index.js", "./"]
 
 # script to add and run-as non-root user
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
