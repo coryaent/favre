@@ -3,6 +3,25 @@
 const fs = require ('fs');
 const { spawn, execSync } = require ('child_process');
 
+const cfgTemplate = `
+no ssl * *;
+
+group syncronization {
+    
+    {{#hosts}}
+    host {{.}};
+    {{/hosts}}
+
+    key {{key}};
+
+    include {{include}};
+
+    exclude {{exclude}};
+
+    auto younger;
+}
+`;
+
 const Mustache = require ('mustache');
 Mustache.parse (cfgTemplate);
 
@@ -66,22 +85,3 @@ module.exports = {
         });
     }
 };
-
-const cfgTemplate = `
-no ssl * *;
-
-group syncronization {
-    
-    {{#hosts}}
-    host {{.}};
-    {{/hosts}}
-
-    key {{key}};
-
-    include {{include}};
-
-    exclude {{exclude}};
-
-    auto younger;
-}
-`;
