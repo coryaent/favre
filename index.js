@@ -6,6 +6,8 @@ const EventEmitter = require ('events');
 const watch = require ('node-watch');
 const Discover = require ('node-discover');
 
+const ip = require ('ip');
+
 // start the csync2 daemon
 const Csync2 = require ('./csync2.js');
 
@@ -46,7 +48,7 @@ const cluster = new Discover ({
     checkInterval: 2 * 2000,
     nodeTimeout: 30 * 1000,
     address: '0.0.0.0',
-    multicast: '224.0.0.1',
+    broadcast: ip.cidrSubnet (`${ip.address()}/24`).broadcastAddress,
     port: 30864,
 }, async (error) => {
     // callback on initialization

@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/coryagroup/favre#readme",
   "dependencies": {
+    "ip": "^1.1.5",
     "mustache": "^4.1.0",
     "node-discover": "^1.2.0",
     "node-watch": "^0.7.1",
