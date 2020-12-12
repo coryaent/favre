@@ -59,12 +59,12 @@ const cluster = new Discover ({
     };
     // looking for peers
     console.log ('Started peer discovery, looking for peers...');
-    const retries = 3; let attempt = 0;
+    const retries = 3; let attempt = 1;
     while ((Csync2.hosts.size <= 1) && (attempt <= retries)) {
         // backoff
-        await sleep ( (attempt ? attempt : 1) * 20 * 1000);
+        await sleep ( attempt * 20 * 1000);
         if (Csync2.hosts.size <= 1) {
-            console.log (`No peers found. Retrying (${(attempt ? attempt : 1)}/${retries})...`);
+            console.log (`No peers found. Retrying (${attempt}/${retries})...`);
             attempt++;
         };
     };
