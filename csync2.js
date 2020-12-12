@@ -51,7 +51,7 @@ const cfg = {
 };
 
 module.exports.daemon = () => {
-    return spawn ('csync2', ['-ii', '-vv'], {
+    spawn ('csync2', ['-ii', '-vv'], {
         stdio: ['ignore', 'inherit', 'inherit']
     })
     .on ('error', (error) => {
