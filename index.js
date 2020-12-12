@@ -41,7 +41,7 @@ const cluster = new Discover ({
     nodeTimeout: 30 * 1000,
     address: '0.0.0.0',
     port: 30864,
-}, async (error) => {
+}, (error) => {
     // callback on initialization
     if (error) {
         console.error ('Could not start peer discovery.');
@@ -53,7 +53,7 @@ const cluster = new Discover ({
     const retries = 3; let attempt = 0;
     while ((Csync2.hosts.size <= 1) && (attempt <= retries)) {
         // backoff
-        await sleep ( (attempt ? attempt : 1) * 20 * 1000);
+        sleep ( (attempt ? attempt : 1) * 20 * 1000);
         if (Csync2.hosts.size <= 1) {
             attempt++;
             console.log (`No peers found. Retrying (${attempt}/${retries})...`);
