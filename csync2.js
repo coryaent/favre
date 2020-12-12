@@ -65,14 +65,11 @@ module.exports.sync = () => {
     );
     const cmd = (`csync2 -x -r`);
     console.log (`Running ${cmd}...`);
-    execSync (cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.error (error);
-            return;
-        };
-        console.log (stdout);
-        console.error (stderr);
-    });
+    try {
+        execSync (cmd);
+    } catch (error) {
+        console.error (error);
+    };
 };
 
 module.exports.flush = () => {
@@ -83,12 +80,9 @@ module.exports.flush = () => {
     );
     const cmd = (`csync2 -R`);
     console.log (`Running ${cmd}...`);
-    execSync (cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.error (error);
-            return;
-        };
-        console.log (stdout);
-        console.error (stderr);
-    });
+    try {
+        execSync (cmd);
+    } catch (error) {
+        console.error (error);
+    };
 };
