@@ -7,6 +7,7 @@ const watch = require ('node-watch');
 const Discover = require ('node-discover');
 
 const ip = require ('ip');
+const iprange = require ('iprange');
 
 // start the csync2 daemon
 const Csync2 = require ('./csync2.js');
@@ -44,11 +45,11 @@ const watcher = watch('/sync', {
 
 // automatic peer discovery
 const cluster = new Discover ({
-    helloInterval: 1 * 1000,
+    helloInterval: 5 * 1000,
     checkInterval: 2 * 2000,
     nodeTimeout: 30 * 1000,
-    address: '0.0.0.0',
-    broadcast: ip.cidrSubnet (`${ip.address()}/24`).broadcastAddress,
+    address: ip.address(),
+    unicast: iprange (`${ip.address()}/24`),
     port: 30864,
 }, async (error) => {
     // callback on initialization
