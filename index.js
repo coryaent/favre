@@ -8,7 +8,6 @@ const Discover = require ('node-discover');
 
 // start the csync2 daemon
 const Csync2 = require ('./csync2.js');
-Csync2.daemon ();
 
 // track initialization
 var INITIALIZING = true;
@@ -48,24 +47,6 @@ const cluster = new Discover ({
         console.error (error);
         process.exitCode = 1;
     };
-    // looking for peers
-    console.log ('Started peer discovery, looking for peers...');
-    const retries = 3; let attempt = 0;
-    while ((Csync2.hosts.size <= 1) && (attempt <= retries)) {
-        // backoff
-        sleep ( (attempt ? attempt : 1) * 20 * 1000);
-        if (Csync2.hosts.size <= 1) {
-            attempt++;
-            console.log (`No peers found. Retrying (${attempt}/${retries})...`);
-        };
-    };
-    // either move on or quit
-    if (Csync2.hosts.size > 1) {
-        Initialization.emit ('done');
-    } else {
-        process.kill (process.pid);
-    };
-
 })
 .on ('added', function (node) {
     // { 
@@ -95,6 +76,27 @@ const cluster = new Discover ({
     Csync2.hosts.delete (node.hostName);
     Csync2.flush ();
 });
+
+(async function findPeers () {
+
+    // looking for peers
+    console.log ('Started peer discovery, looking for peers...');
+    const retries = 3; let attempt = 0;
+    while ((Csync2.hosts.size <= 1) && (attempt <= retries)) {
+        // backoff
+        await sleep ( (attempt ? attempt : 1) * 20 * 1000);
+        if (Csync2.hosts.size <= 1) {
+            attempt++;
+            console.log (`No peers found. Retrying (${attempt}/${retries})...`);
+        };
+    };
+    // either move on or quit
+    if (Csync2.hosts.size > 1) {
+        Initialization.emit ('done');
+    } else {
+        process.kill (process.pid);
+    };
+}) ();
 
 // exit
 process.on ('SIGINT', () => {

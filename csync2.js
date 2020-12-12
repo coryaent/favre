@@ -50,16 +50,15 @@ const cfg = {
     excludes: process.env.EXCLUDE,
 };
 
-module.exports.daemon = () => {
-    spawn ('csync2', ['-ii', '-vv'], {
-        stdio: ['ignore', 'inherit', 'inherit']
-    })
-    .on ('error', (error) => {
-        console.error ('Failed to start Csync2 subprocess.');
-        console.error (error);
-        process.exitCode = 1;
-    });
-};
+module.exports.daemon = 
+spawn ('csync2', ['-ii', '-vv'], {
+    stdio: ['ignore', 'inherit', 'inherit']
+})
+.on ('error', (error) => {
+    console.error ('Failed to start Csync2 subprocess.');
+    console.error (error);
+    process.exitCode = 1;
+});
 
 module.exports.sync = () => {
     cfg.hosts = Array.from (hosts.values());
