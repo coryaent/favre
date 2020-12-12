@@ -46,6 +46,7 @@ const cluster = new Discover ({
     checkInterval: 2 * 2000,
     nodeTimeout: 30 * 1000,
     address: '0.0.0.0',
+    multicast: '224.0.0.1',
     port: 30864,
 }, async (error) => {
     // callback on initialization
