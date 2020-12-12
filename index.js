@@ -8,7 +8,7 @@ const Discover = require ('node-discover');
 
 // start the csync2 daemon
 const Csync2 = require ('./csync2.js');
-Csync2.daemon.start ();
+Csync2.daemon ();
 
 // track initialization
 var INITIALIZING = true;
