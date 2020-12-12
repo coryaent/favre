@@ -9,8 +9,8 @@ int main() {
 	seteuid (0);
 	setegid (0);
 
-	if ( mkdir("/run/my-dir", 0755) || 
-		 chown("/run/my-dir", getuid(), getgid()) ||
+	if ( mkdir("/run/csync2", 0755) || 
+		 chown("/run/csync2", getuid(), getgid()) ||
 		 chown("/sync", getuid(), getgid()) ) { exit (EXIT_FAILURE); }
 
 	exit (EXIT_SUCCESS);
