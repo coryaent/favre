@@ -1,7 +1,7 @@
 FROM node:12-buster
 
 # expose ports for discovery and Csync2 daemon
-EXPOSE 30864
+EXPOSE 30864/udp
 EXPOSE 30865
 
 # install dependencies
