@@ -2,7 +2,7 @@
 
 const os = require ('os');
 const fs = require ('fs');
-const { spawn, execFileSync, execSync } = require ('child_process');
+const { spawn, execFileSync } = require ('child_process');
 
 // make relevent directory and chown
 try {
@@ -66,7 +66,7 @@ module.exports.sync = () => {
     const cmd = (`csync2 -x -r`);
     console.log (`Running ${cmd}...`);
     try {
-        execSync (cmd);
+        execFileSync ('/usr/sbin/csync2', ['-x', '-r']);
     } catch (error) {
         console.error (error);
     };
@@ -81,7 +81,7 @@ module.exports.flush = () => {
     const cmd = (`csync2 -R`);
     console.log (`Running ${cmd}...`);
     try {
-        execSync (cmd);
+        execFileSync ('/usr/sbin/csync2', ['-R']);
     } catch (error) {
         console.error (error);
     };
