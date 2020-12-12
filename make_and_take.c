@@ -10,6 +10,8 @@ int main() {
 	setegid (0);
 
 	if ( mkdir("/run/csync2", 0755) || 
+		 mkdir("/run/csync2/db", 0755) || 
+		 chown("/run/csync2/db", getuid(), getgid()) ||
 		 chown("/run/csync2", getuid(), getgid()) ||
 		 chown("/sync", getuid(), getgid()) ) { exit (EXIT_FAILURE); }
 
