@@ -4,6 +4,7 @@ const { sleep } = require ('sleepjs');
 const EventEmitter = require ('events');
 
 const watch = require ('node-watch');
+const debounce = require ('debounce');
 const Discover = require ('node-discover');
 
 const ip = require ('ip');
@@ -24,12 +25,11 @@ const Initialization = new EventEmitter ()
 // watch filesystem for changes
 const watcher = watch('/sync', { 
     recursive: true,
-    delay: 2000
 })
 .on ('ready', () => {
     console.log ('Watching directory /sync for changes...');
 })
-.on ('change', () => {
+.on ('change', debounce (() => {
     console.log ('Detected file change.');
     // ignore events if initializing
     if (!INITIALIZING) {
@@ -37,7 +37,7 @@ const watcher = watch('/sync', {
     } else {
         console.log ('Wating for initialization...');
     };
-})
+}, 1000))
 .on ('error', (error) => {
     console.error (error);
     process.exitCode = 1;
