@@ -1,6 +1,6 @@
 "use strict";
 
-const { sleep } = require ('sleepjs');
+// const { sleep } = require ('sleepjs');
 const EventEmitter = require ('events');
 
 const watch = require ('node-watch');
@@ -108,3 +108,7 @@ process.on ('SIGTERM', () => {
     cluster.stop ();
     Csync2.daemon.kill ();
 });
+
+function sleep(n) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n);
+};
