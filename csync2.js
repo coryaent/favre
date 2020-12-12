@@ -36,9 +36,6 @@ group syncronization {
 const Mustache = require ('mustache');
 Mustache.parse (cfgTemplate);
 
-// keep DB in RAM
-const DB_FLAG = '-D /run/csync2/db';
-
 // track which hosts are online
 const hosts = new Set ([os.hostname()]);
 module.exports.hosts = hosts;
@@ -51,7 +48,7 @@ const cfg = {
 };
 
 module.exports.daemon = 
-spawn ('csync2', ['-ii', '-vv'], {
+spawn ('csync2', ['-ii', '-vv', '-D', '/run/csync2/db'], {
     stdio: ['ignore', 'inherit', 'inherit']
 })
 .on ('error', (error) => {
@@ -66,7 +63,7 @@ module.exports.sync = () => {
         '/run/csync2/csync2.cfg',
         Mustache.render (cfgTemplate, cfg)
     );
-    const cmd = (`csync2 -x -r -v ${DB_FLAG}`);
+    const cmd = (`csync2 -x -r -v`);
     console.log (`Running ${cmd}...`);
     execSync (cmd, (error, stdout, stderr) => {
         if (error) {
@@ -84,7 +81,7 @@ module.exports.flush = () => {
         '/run/csync2/csync2.cfg',
         Mustache.render (cfgTemplate, cfg)
     );
-    const cmd = (`csync2 -R ${DB_FLAG}`);
+    const cmd = (`csync2 -R`);
     console.log (`Running ${cmd}...`);
     execSync (cmd, (error, stdout, stderr) => {
         if (error) {
