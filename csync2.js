@@ -63,7 +63,7 @@ module.exports.sync = () => {
         '/run/csync2/csync2.cfg',
         Mustache.render (cfgTemplate, cfg)
     );
-    const cmd = (`csync2 -x -r -v`);
+    const cmd = (`csync2 -x -r`);
     console.log (`Running ${cmd}...`);
     execSync (cmd, (error, stdout, stderr) => {
         if (error) {
