@@ -35,6 +35,7 @@ group syncronization {
 
 const Mustache = require ('mustache');
 Mustache.parse (cfgTemplate);
+Mustache.escape = (x) => {return x;};
 
 // track which hosts are online
 const hosts = new Set ([os.hostname()]);
@@ -66,7 +67,7 @@ module.exports.sync = () => {
     const cmd = (`csync2 -x -r`);
     console.log (`Running ${cmd}...`);
     try {
-        execFileSync ('/usr/sbin/csync2', ['-x', '-r']);
+        execFileSync ('csync2', ['-x', '-r']);
     } catch (error) {
         console.error (error);
     };
@@ -81,7 +82,7 @@ module.exports.flush = () => {
     const cmd = (`csync2 -R`);
     console.log (`Running ${cmd}...`);
     try {
-        execFileSync ('/usr/sbin/csync2', ['-R']);
+        execFileSync ('csync2', ['-R']);
     } catch (error) {
         console.error (error);
     };
