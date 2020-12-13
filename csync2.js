@@ -13,9 +13,9 @@ try {
 };
 
 const cfgTemplate = `
-no ssl * *;
+nossl * *;
 
-group syncronization {
+group synchronization {
     
     {{#hosts}}
     host {{.}};
@@ -42,14 +42,24 @@ const hosts = new Set ([os.hostname()]);
 module.exports.hosts = hosts;
 
 // config
+const DB = '/run/csync2/db';
 process.env.CSYNC2_SYSTEM_DIR = '/run/csync2'; // make sure this is set
 const cfg = {    
     key: process.env.KEY_FILE ? process.env.KEY_FILE : '/run/secrets/csync2.psk',
     excludes: process.env.EXCLUDE,
 };
 
+const updateCfg = function () {
+    cfg.hosts = Array.from (hosts.values());
+    fs.writeFileSync (
+        '/run/csync2/csync2.cfg',
+        Mustache.render (cfgTemplate, cfg)
+    );
+};
+module.exports.updateCfg = updateCfg;
+
 module.exports.daemon = 
-spawn ('csync2', ['-ii', '-vv', '-D', '/run/csync2/db'], {
+spawn ('csync2', ['-ii', '-vv', '-D', DB], {
     stdio: ['ignore', 'inherit', 'inherit']
 })
 .on ('error', (error) => {
@@ -59,30 +69,22 @@ spawn ('csync2', ['-ii', '-vv', '-D', '/run/csync2/db'], {
 });
 
 module.exports.sync = () => {
-    cfg.hosts = Array.from (hosts.values());
-    fs.writeFileSync (
-        '/run/csync2/csync2.cfg',
-        Mustache.render (cfgTemplate, cfg)
-    );
-    const cmd = (`csync2 -x -r`);
+    updateCfg ();
+    const cmd = (`csync2 -x -r -D ${DB}`);
     console.log (`Running ${cmd}...`);
     try {
-        execFileSync ('csync2', ['-x', '-r']);
+        execFileSync ('csync2', ['-x', '-r', '-D', DB]);
     } catch (error) {
         console.error (error);
     };
 };
 
 module.exports.flush = () => {
-    cfg.hosts = Array.from (hosts.values());
-    fs.writeFileSync (
-        '/run/csync2/csync2.cfg',
-        Mustache.render (cfgTemplate, cfg)
-    );
-    const cmd = (`csync2 -R`);
+    updateCfg ();
+    const cmd = (`csync2 -R -D ${DB}`);
     console.log (`Running ${cmd}...`);
     try {
-        execFileSync ('csync2', ['-R']);
+        execFileSync ('csync2', ['-R', '-D', DB]);
     } catch (error) {
         console.error (error);
     };
