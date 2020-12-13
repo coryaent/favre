@@ -25,6 +25,7 @@ const Initialization = new EventEmitter ()
 // watch filesystem for changes
 const watcher = watch('/sync', { 
     recursive: true,
+    delay: 1000
 })
 .on ('ready', () => {
     console.log ('Watching directory /sync for changes...');
@@ -92,6 +93,7 @@ const cluster = new Discover ({
     // initial discovery of peers
     if (INITIALIZING) {
         Csync2.hosts.add (node.hostName);
+        Csync2.updateCfg ();
     } else {
         // sync to new host if unknown
         if (!Csync2.hosts.has (node.hostName)) {
