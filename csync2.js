@@ -59,7 +59,7 @@ const updateCfg = function () {
 module.exports.updateCfg = updateCfg;
 
 module.exports.daemon = 
-spawn ('csync2', ['-ii', '-vv', '-D', DB], {
+spawn ('csync2', ['-ii', '-v', '-D', DB], {
     stdio: ['ignore', 'inherit', 'inherit']
 })
 .on ('error', (error) => {
@@ -75,7 +75,8 @@ module.exports.sync = () => {
     try {
         execFileSync ('csync2', ['-x', '-r', '-D', DB]);
     } catch (error) {
-        console.error (error);
+        console.error (error.name);
+        console.error (error.message);
     };
 };
 
@@ -86,6 +87,7 @@ module.exports.flush = () => {
     try {
         execFileSync ('csync2', ['-R', '-D', DB]);
     } catch (error) {
-        console.error (error);
+        console.error (error.name);
+        console.error (error.message);
     };
 };
