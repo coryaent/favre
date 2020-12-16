@@ -59,7 +59,7 @@ const updateCfg = function () {
 module.exports.updateCfg = updateCfg;
 
 module.exports.daemon = 
-spawn ('csync2', ['-ii', '-v', '-D', DB], {
+spawn ('csync2', ['-ii', '-D', DB], {
     stdio: ['ignore', 'inherit', 'inherit']
 })
 .on ('error', (error) => {
