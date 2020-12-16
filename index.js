@@ -38,7 +38,7 @@ const watcher = watch('/sync', {
     } else {
         console.log ('Wating for initialization...');
     };
-}, 1000))
+}, 5000))
 .on ('error', (error) => {
     console.error (error);
     process.exitCode = 1;
