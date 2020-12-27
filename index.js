@@ -25,7 +25,6 @@ const Initialization = new EventEmitter ()
 // watch filesystem for changes
 const watcher = watch('/sync', { 
     recursive: true,
-    delay: 1000
 })
 .on ('ready', () => {
     console.log ('Watching directory /sync for changes...');
