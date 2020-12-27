@@ -1,8 +1,8 @@
-FROM debian:buster-slim AS gcc
+FROM debian:buster AS gcc
 WORKDIR /opt
 COPY make_and_take.c make_and_take.c
-RUN gcc make_and_take.c -o ./make_and_take && \
-    chmod ug+s ./make_and_take
+RUN gcc -o /opt/make_and_take make_and_take.c && \
+    chmod ug+s /opt/make_and_take
 
 #####################
 # primary container #
