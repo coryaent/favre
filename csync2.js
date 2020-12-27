@@ -77,7 +77,7 @@ module.exports.sync = () => {
     } catch (error) {
         console.error (error.name);
         console.error (error.message);
-    };
+    }
 };
 
 module.exports.flush = () => {
@@ -89,5 +89,5 @@ module.exports.flush = () => {
     } catch (error) {
         console.error (error.name);
         console.error (error.message);
-    };
+    }
 };

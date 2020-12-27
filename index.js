@@ -57,7 +57,7 @@ const cluster = new Discover ({
         console.error ('Could not start peer discovery.');
         console.error (error);
         process.exitCode = 1;
-    };
+    }
     // looking for peers
     console.log ('Started peer discovery, looking for peers...');
     const retries = 3; let attempt = 1;
@@ -67,14 +67,14 @@ const cluster = new Discover ({
         if (Csync2.hosts.size <= 1) {
             console.log (`No peers found. Retrying (${attempt}/${retries})...`);
             attempt++;
-        };
+        }
     };
     // either move on or quit
     if (Csync2.hosts.size > 1) {
         Initialization.emit ('done');
     } else {
         process.kill (process.pid);
-    };
+    }
 
 })
 .on ('added', function (node) {
@@ -98,8 +98,8 @@ const cluster = new Discover ({
         if (!Csync2.hosts.has (node.hostName)) {
             Csync2.hosts.add (node.hostName);
             Csync2.sync ();
-        };
-    };
+        }
+    }
 })
 .on ('removed', function (node) {
     console.log (`Host ${node.hostName} lost.`);
