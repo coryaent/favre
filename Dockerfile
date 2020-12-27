@@ -1,7 +1,7 @@
 FROM debian:buster-slim AS gcc
 WORKDIR /opt
 COPY make_and_take.c make_and_take.c
-RUN gcc make_and_take.c -o ./make_and_take \
+RUN gcc make_and_take.c -o ./make_and_take && \
     chmod ug+s ./make_and_take
 
 #####################
