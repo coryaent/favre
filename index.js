@@ -18,7 +18,7 @@ var INITIALIZING = true;
 const Initialization = new EventEmitter ()
 .once ('done', () => {
     INITIALIZING = false;
-    console.log (`Initialized with ${Csync2.hosts.size - 1} peers.`)
+    console.log (`Initialized with ${Csync2.hosts.size - 1} peers.`);
     Csync2.sync ();
 });
 
@@ -37,7 +37,7 @@ const watcher = watch('/sync', {
        Csync2.sync ();
     } else {
         console.log ('Wating for initialization...');
-    };
+    }
 }, 5000))
 .on ('error', (error) => {
     console.error (error);

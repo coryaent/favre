@@ -10,7 +10,7 @@ try {
 } catch (error) {
     console.error ('Error in native initialization binary.');
     process.exitCode = 1;
-};
+}
 
 const cfgTemplate = `
 nossl * *;

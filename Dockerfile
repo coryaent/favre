@@ -1,11 +1,14 @@
-FROM node:12-buster
+FROM node:12-buster-slim
 
 # expose ports for discovery and Csync2 daemon
 EXPOSE 30864/udp
 EXPOSE 30865
 
 # install dependencies
-RUN apt-get update && apt-get install -y csync2 libsqlite3-0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    csync2=2.0-22-gce67c55-1+deb10u1 libsqlite3-0=3.34.0-1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # add SUID takeover program
 COPY make_and_take.c make_and_take.c
