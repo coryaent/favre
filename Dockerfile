@@ -1,8 +1,11 @@
 FROM debian:buster AS gcc
 WORKDIR /opt
 COPY make_and_take.c /opt/make_and_take.c
-RUN gcc -o /opt/make_and_take make_and_take.c && \
-    chmod ug+s /opt/make_and_take
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc=4:8.3.0-1 && \
+    gcc make_and_take.c -o /opt/make_and_take && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 #####################
 # primary container #
@@ -20,7 +23,8 @@ COPY --from=gcc /opt/make_and_take /usr/local/bin/make_and_take
 RUN apt-get update && apt-get install -y --no-install-recommends \
     csync2=2.0-22-gce67c55-1+deb10u1 libsqlite3-0=3.27.2-3+deb10u1 && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    chmod ug+s /usr/local/bin/make_and_take
 
 # install node.js application
 WORKDIR /usr/src/app
