@@ -1,20 +1,26 @@
+FROM debian:buster-slim AS gcc
+WORKDIR /opt
+COPY make_and_take.c make_and_take.c
+RUN gcc make_and_take.c -o ./make_and_take \
+    chmod ug+s ./make_and_take
+
+#####################
+# primary container #
+#####################
 FROM node:12-buster-slim
 
 # expose ports for discovery and Csync2 daemon
 EXPOSE 30864/udp
 EXPOSE 30865
 
+# copy compiled make_and_take
+COPY --from=gcc /opt/make_and_take /usr/local/bin/make_and_take
+
 # install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     csync2=2.0-22-gce67c55-1+deb10u1 libsqlite3-0=3.27.2-3+deb10u1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-# add SUID takeover program
-COPY make_and_take.c make_and_take.c
-RUN gcc -o /usr/local/bin/make_and_take \
-    make_and_take.c && rm make_and_take.c && \
-    chmod ug+s /usr/local/bin/make_and_take
 
 # install node.js application
 WORKDIR /usr/src/app
