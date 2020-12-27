@@ -2,7 +2,7 @@ FROM debian:buster AS gcc
 WORKDIR /opt
 COPY make_and_take.c /opt/make_and_take.c
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc=4:8.3.0-1 && \
+    gcc=4:8.3.0-1 libc6-dev=2.28-10 && \
     gcc make_and_take.c -o /opt/make_and_take && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
