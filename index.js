@@ -68,7 +68,7 @@ const cluster = new Discover ({
             console.log (`No peers found. Retrying (${attempt}/${retries})...`);
             attempt++;
         }
-    };
+    }
     // either move on or quit
     if (Csync2.hosts.size > 1) {
         Initialization.emit ('done');
