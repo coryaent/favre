@@ -24,6 +24,6 @@
     "mustache": "^4.1.0",
     "node-discover": "^1.2.0",
     "node-watch": "^0.7.1",
-    "sleepjs": "^4.0.2"
+    "sleepjs": "^4.0.3"
   }
 }
