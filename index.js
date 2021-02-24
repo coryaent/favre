@@ -77,7 +77,7 @@ const cluster = new Discover ({
     }
 
 })
-.on ('added', function (node) {
+.on ('added', function addNode (node) {
     // { 
     //     isMaster: true,
     //     isMasterEligible: true,
@@ -101,7 +101,7 @@ const cluster = new Discover ({
         }
     }
 })
-.on ('removed', function (node) {
+.on ('removed', function removeNode (node) {
     console.log (`Host ${node.hostName} lost.`);
     Csync2.hosts.delete (node.hostName);
     Csync2.flush ();

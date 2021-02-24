@@ -33,13 +33,13 @@ group synchronization {
 }
 `;
 
+// template rendering
 const Mustache = require ('mustache');
 Mustache.parse (cfgTemplate);
 Mustache.escape = (x) => {return x;};
 
 // track which hosts are online
 const hosts = new Set ([os.hostname()]);
-module.exports.hosts = hosts;
 
 // config
 const DB = '/run/csync2/db';
@@ -49,45 +49,48 @@ const cfg = {
     excludes: process.env.EXCLUDE,
 };
 
-const updateCfg = function () {
+function updateCfg () {
     cfg.hosts = Array.from (hosts.values());
     fs.writeFileSync (
         '/run/csync2/csync2.cfg',
         Mustache.render (cfgTemplate, cfg)
     );
 };
-module.exports.updateCfg = updateCfg;
 
-module.exports.daemon = 
-spawn ('csync2', ['-ii', '-D', DB], {
-    stdio: ['ignore', 'inherit', 'inherit']
-})
-.on ('error', (error) => {
-    console.error ('Failed to start Csync2 subprocess.');
-    console.error (error);
-    process.exitCode = 1;
-});
+module.exports = {
+    hosts,
 
-module.exports.sync = () => {
-    updateCfg ();
-    const cmd = (`csync2 -x -r -D ${DB}`);
-    console.log (`Running ${cmd}...`);
-    try {
-        execFileSync ('csync2', ['-x', '-r', '-D', DB]);
-    } catch (error) {
-        console.error (error.name);
-        console.error (error.message);
-    }
-};
+    updateCfg,
 
-module.exports.flush = () => {
-    updateCfg ();
-    const cmd = (`csync2 -R -D ${DB}`);
-    console.log (`Running ${cmd}...`);
-    try {
-        execFileSync ('csync2', ['-R', '-D', DB]);
-    } catch (error) {
-        console.error (error.name);
-        console.error (error.message);
+    daemon: spawn ('csync2', ['-ii', '-D', DB], {
+        stdio: ['ignore', 'inherit', 'inherit']
+    }).on ('error', (error) => {
+        console.error ('Failed to start Csync2 subprocess.');
+        console.error (error);
+        process.exitCode = 1;
+    }),
+
+    sync: () => {
+        updateCfg ();
+        const cmd = (`csync2 -x -r -D ${DB}`);
+        console.log (`Running ${cmd}...`);
+        try {
+            execFileSync ('csync2', ['-x', '-r', '-D', DB]);
+        } catch (error) {
+            console.error (error.name);
+            console.error (error.message);
+        }
+    },
+
+    flush: () => {
+        updateCfg ();
+        const cmd = (`csync2 -R -D ${DB}`);
+        console.log (`Running ${cmd}...`);
+        try {
+            execFileSync ('csync2', ['-R', '-D', DB]);
+        } catch (error) {
+            console.error (error.name);
+            console.error (error.message);
+        }
     }
 };
