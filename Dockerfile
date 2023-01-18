@@ -21,7 +21,7 @@ COPY --from=gcc /opt/make_and_take /usr/local/bin/make_and_take
 
 # install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    csync2=2.0-22-gce67c55-1+deb10u1 libsqlite3-0=3.27.2-3+deb10u1 && \
+    csync2 libsqlite3-0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     chmod ug+s /usr/local/bin/make_and_take
