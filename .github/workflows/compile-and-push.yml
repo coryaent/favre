@@ -38,7 +38,7 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags:  coryagroup/favre:latest
+          tags:  stevecorya/favre:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -47,7 +47,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          repository: coryagroup/favre
+          repository: stevecorya/favre
           short-description: Asynchronous synchronization for named volumes
           readme-filepath: ./DOCKER.md
 
