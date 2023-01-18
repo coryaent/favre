@@ -55,7 +55,7 @@ function updateCfg () {
         '/run/csync2/csync2.cfg',
         Mustache.render (cfgTemplate, cfg)
     );
-};
+}
 
 module.exports = {
     hosts,
