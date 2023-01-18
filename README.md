@@ -2,4 +2,4 @@
 [![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/github/coryaent/favre?style=flat-square)](https://libraries.io/github/coryaent/favre)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/stevecorya/favre/latest?style=flat-square)](https://hub.docker.com/r/stevecorya/favre)
 
-Mount the directory `sync`.
+Mount the directory you want to synchronize to `sync` within the container. If a uid and/or gid is specified via the docker `--user` flag, that user id will take over the `/sync` directory.
