@@ -38,6 +38,7 @@ const Mustache = require ('mustache');
 Mustache.parse (cfgTemplate);
 Mustache.escape = (x) => {return x;};
 
+
 // track which hosts are online
 const hosts = new Set ([os.hostname()]);
 
