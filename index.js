@@ -96,7 +96,7 @@ async function sync () {
 // watch filesystem for changes
 const watcher = watch (includes, {
     recursive: true,
-    delay: 2000
+    delay: Number.parseInt (process.env.FAVRE_DEBOUNCE_DELAY)
 })
 .on ('ready', sync)
 .on ('change', sync);

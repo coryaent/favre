@@ -25,3 +25,5 @@ Many of the configuration options available for Csync2 are available for Favre. 
 `CSYNC2_SYSTEM_DIR`: optional, defaults to `/run/csync2`
 
 `FAVRE_TASKS_ENDPOINT`: mandatory, no default
+
+`FAVRE_DEBOUNCE_DELAY`: optional, defaults to `2000` milliseconds

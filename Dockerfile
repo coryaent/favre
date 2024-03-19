@@ -21,5 +21,6 @@ COPY nsswitch.conf /etc/nsswitch.conf
 ENV CSYNC2_AUTO=younger
 ENV CSYNC2_DB=/var/lib/csync2/favre.db
 ENV CSYNC2_SYSTEM_DIR=/run/csync2
+ENV FAVRE_DEBOUNCE_DELAY=2000
 
 ENTRYPOINT ["node", "index.js"]
