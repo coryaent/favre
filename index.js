@@ -56,6 +56,8 @@ for (let variable of Object.keys (process.env)) {
         excludes.push (process.env[variable]);
     }
 }
+console.log ('Found', includes.length, 'paths to include.');
+console.log ('Found', excludes.length, 'patterns to exclude.');
 
 // object to render with mustache template
 const cfg = {
@@ -82,11 +84,14 @@ async function sync () {
     for (let task of tasks) {
         hosts.push (task[0]);
     }
+    console.log ('Found', hosts.length, 'hosts.');
     // no need to sync with self
     if (hosts.length > 1) {
         // update config
         cfg.hosts = hosts;
-        fs.writeFileSync (`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, Mustache.render (cfgTemplate, cfg));
+        const configFile = Mustache.render (cfgTemplate, cfg);
+        console.log ('Writing config file', configFile);
+        fs.writeFileSync (`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // execute the synchronization
         execFileSync ('csync2', ['-x', '-r', '-vvv', '-D', process.env.CSYNC2_DB]);
 
@@ -98,8 +103,14 @@ const watcher = watch (includes, {
     recursive: true,
     delay: Number.parseInt (process.env.FAVRE_DEBOUNCE_DELAY)
 })
-.on ('ready', sync)
-.on ('change', sync);
+.on ('ready', () => {
+    console.log ('Watcher ready.');
+    sync ();
+})
+.on ('change', () => {
+    console.log ('Detected file change');
+    sync ();
+});
 
 // exit
 process.on ('SIGTERM', () => {
