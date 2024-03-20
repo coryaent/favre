@@ -4,6 +4,7 @@ const dns = require ('node:dns').promises;
 const { spawn, execFileSync } = require ('node:child_process');
 const watch = require ('node-watch');
 const Mustache = require ('mustache');
+const fs = require('node:fs');
 
 if (!process.env.CSYNC2_KEY_FILE) {
     console.error ('CSYNC2_KEY_FILE must be set');
