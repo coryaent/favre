@@ -19,7 +19,7 @@ COPY nsswitch.conf /etc/nsswitch.conf
 
 # default ENV
 ENV CSYNC2_AUTO=younger
-ENV CSYNC2_DB=/var/lib/csync2/favre.db
+ENV CSYNC2_DB_DIR=/var/lib/csync2
 ENV CSYNC2_SYSTEM_DIR=/run/csync2
 ENV FAVRE_DEBOUNCE_DELAY=2000
 

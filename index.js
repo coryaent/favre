@@ -5,6 +5,7 @@ const { spawn, execFileSync } = require ('node:child_process');
 const watch = require ('node-watch');
 const Mustache = require ('mustache');
 const fs = require('node:fs');
+const os = require('node:os');
 
 if (!process.env.CSYNC2_KEY_FILE) {
     console.error ('CSYNC2_KEY_FILE must be set');
@@ -12,9 +13,9 @@ if (!process.env.CSYNC2_KEY_FILE) {
 }
 
 // start the csync2 daemon
-const csync2d = spawn ('csync2', ['-ii', '-vvv', '-D', process.env.CSYNC2_DB_FILE], {
+const csync2d = spawn ('csync2', ['-ii', '-vvv', '-D', process.env.CSYNC2_DB_DIR], {
     stdio: ['ignore', 'inherit', 'inherit']
-})
+});
 
 // mustache things
 const cfgTemplate = `
@@ -80,7 +81,7 @@ async function sync () {
         taskLookups.push (dns.reverse (record.address));
     }
     // get resolvable task hosts
-    let hosts = [];
+    let hosts = [os.hostname()];
     let tasks = await Promise.all (taskLookups);
     for (let task of tasks) {
         hosts.push (task[0]);
@@ -94,7 +95,7 @@ async function sync () {
         console.log ('Writing config file', configFile);
         fs.writeFileSync (`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // execute the synchronization
-        execFileSync ('csync2', ['-x', '-r', '-vvv', '-D', process.env.CSYNC2_DB]);
+        execFileSync ('csync2', ['-x', '-r', '-vvv', '-D', process.env.CSYNC2_DB_DIR]);
 
     }
 }
