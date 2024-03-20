@@ -6,7 +6,7 @@
 Favre is a wrapper around [Csync2](https://github.com/LINBIT/csync2/blob/master/doc/csync2.adoc) for automatic, eventually-consistent file synchronization within a Docker Swarm.
 
 ## Configuration
-Many of the configuration options available for Csync2 are available for Favre. These environmental variables will be rendered into a file `/etc/csync2.cfg` prior to running `csync2`.
+Many of the configuration options available for Csync2 are available for Favre. These environmental variables will be rendered into a file `/run/csync2/csync2.cfg` prior to running `csync2`.
 
 `CSYNC2_DB`: advised to persist with docker volume, default `/var/lib/csync2/favre.db`
 

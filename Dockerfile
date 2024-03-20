@@ -14,7 +14,7 @@ COPY package*.json ./
 RUN npm install
 COPY ./index.js ./
 
-# use custom nsswitch and
+# use custom nsswitch
 COPY nsswitch.conf /etc/nsswitch.conf
 
 # default ENV
