@@ -49,10 +49,10 @@ Mustache.escape = (x) => {return x;};
 const includes = [];
 const excludes = [];
 for (let variable of Object.keys (process.env)) {
-    if (variable.startsWith ('FAVRE_INCLUDE')) {
+    if (variable.startsWith ('CSYNC2_INCLUDE')) {
         includes.push (process.env[variable]);
     }
-    if (variable.startsWith ('FAVRE_EXCLUDE')) {
+    if (variable.startsWith ('CSYNC2_EXCLUDE')) {
         excludes.push (process.env[variable]);
     }
 }
