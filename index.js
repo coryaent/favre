@@ -81,9 +81,11 @@ async function sync () {
         taskLookups.push (dns.reverse (record.address));
     }
     // get resolvable task hosts
-    let hosts = [os.hostname()];
+    let hosts = [];
     let tasks = await Promise.all (taskLookups);
     for (let task of tasks) {
+        // change reverse dns to match hostname
+        let remote = task[0].split ('.').slice (0,3).toString ().replaceAll (',','.');
         hosts.push (task[0]);
     }
     console.log ('Found', hosts.length, 'hosts.');
