@@ -86,7 +86,7 @@ async function sync () {
     for (let task of tasks) {
         // change reverse dns to match hostname
         let remote = task[0].split ('.').slice (0,3).toString ().replaceAll (',','.');
-        hosts.push (task[0]);
+        hosts.push (remote);
     }
     console.log ('Found', hosts.length, 'hosts.');
     // no need to sync with self
