@@ -24,9 +24,9 @@ Many of the configuration options available for Csync2 are available for Favre. 
 
 `CSYNC2_SYSTEM_DIR`: optional, defaults to `/run/csync2`
 
-`CSYNC2_DAEMON_VERBOSITY`: optional, defaults to `-vv`
+`CSYNC2_DAEMON_VERBOSITY`: optional, defaults to `-v`
 
-`CSYNC2_CLIENT_VERBOSITY`: optional, defaults to `-vv`
+`CSYNC2_CLIENT_VERBOSITY`: optional, defaults to `-v`
 
 `CSYNC2_SYNC_INTERVAL`: mandatory, defaults to `5000` (ms)
 
