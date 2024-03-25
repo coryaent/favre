@@ -97,8 +97,11 @@ async function sync () {
         console.log ('Writing config file', configFile);
         fs.writeFileSync (`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // execute the synchronization
-        execFileSync ('csync2', ['-x', '-r', '-vvv', '-D', process.env.CSYNC2_DB_DIR]);
-
+        try {
+            execFileSync ('csync2', ['-x', '-r', '-vvv', '-D', process.env.CSYNC2_DB_DIR]);
+        } catch (error) {
+            console.error (error);
+        }
     }
 }
 
