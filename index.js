@@ -2,10 +2,10 @@
 
 const dns = require ('node:dns').promises;
 const { spawn, execFileSync } = require ('node:child_process');
-const watch = require ('node-watch');
-const Mustache = require ('mustache');
 const fs = require('node:fs');
 const os = require('node:os');
+
+const Mustache = require ('mustache');
 
 if (!process.env.CSYNC2_KEY_FILE) {
     console.error ('CSYNC2_KEY_FILE must be set');
@@ -13,7 +13,7 @@ if (!process.env.CSYNC2_KEY_FILE) {
 }
 
 // start the csync2 daemon
-const csync2d = spawn ('csync2', ['-ii', '-vvv', '-D', process.env.CSYNC2_DB_DIR], {
+const csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR], {
     stdio: ['ignore', 'inherit', 'inherit']
 });
 
@@ -98,31 +98,20 @@ async function sync () {
         fs.writeFileSync (`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // execute the synchronization
         try {
-            execFileSync ('csync2', ['-x', '-r', '-vvv', '-D', process.env.CSYNC2_DB_DIR]);
+            execFileSync ('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
         } catch (error) {
             console.error (error);
         }
     }
 }
 
-// watch filesystem for changes
-const watcher = watch (includes, {
-    recursive: true,
-    delay: Number.parseInt (process.env.FAVRE_DEBOUNCE_DELAY)
-})
-.on ('ready', () => {
-    console.log ('Watcher ready.');
-    sync ();
-})
-.on ('change', () => {
-    console.log ('Detected file change');
-    sync ();
-});
+// run sync function periodically
+let syncInterval = setInterval (sync, Number.parseInt (process.env.CSYNC2_SYNC_INTERVAL));
 
 // exit
 process.on ('SIGTERM', () => {
     console.log ('SIGTERM received.');
     console.log ('Shutting down...');
-    watcher.close ();
+    clearInterval (syncInterval);
     csync2d.kill ();
 });
