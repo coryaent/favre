@@ -1,12 +1,14 @@
 # Favre
 [![Codacy grade](https://img.shields.io/codacy/grade/8218e0ae989143c3b4c3cc6a75235756?style=flat-square)](https://app.codacy.com/gh/coryaent/favre/dashboard)
 [![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/github/coryaent/favre?style=flat-square)](https://libraries.io/github/coryaent/favre)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coryaent/favre/latest?style=flat-square)](https://hub.docker.com/r/stevecorya/favre)
+[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coryaent/favre/latest?style=flat-square)](https://hub.docker.com/r/coryaent/favre)
 
 Favre is a wrapper around [Csync2](https://github.com/LINBIT/csync2/blob/master/doc/csync2.adoc) for automatic, eventually-consistent file synchronization within a Docker Swarm.
 
 ## Configuration
-Many of the configuration options available for Csync2 are available for Favre. These environmental variables will be rendered into a file `/run/csync2/csync2.cfg` prior to running `csync2`.
+Many of the configuration options available for Csync2 are available for Favre.
+
+`FAVRE_TASKS_ENDPOINT`: must be set to `"tasks.{{.Service.Name}}."` for discovery
 
 `CSYNC2_AUTO`: defaults to `younger`
 
@@ -28,9 +30,7 @@ Many of the configuration options available for Csync2 are available for Favre. 
 
 `CSYNC2_CLIENT_VERBOSITY`: optional, defaults to `-v`
 
-`CSYNC2_SYNC_INTERVAL`: mandatory, defaults to `5000` (ms)
-
-`FAVRE_TASKS_ENDPOINT`: must be set to `"tasks.{{.Service.Name}}."` for discovery
+`CSYNC2_SYNC_INTERVAL`: optional, defaults to `3000` (ms)
 
 ## Compose
 It is imperative that `hostname` not be changed. The values from a reverse DNS lookup must be marshalled to match this hostname.
