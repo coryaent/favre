@@ -1,6 +1,5 @@
 "use strict";
 
-const dns = require ('node:dns').promises;
 const { spawn, execFileSync } = require ('node:child_process');
 const fs = require('node:fs');
 
