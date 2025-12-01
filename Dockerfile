@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # debian is weird about respecting this var & creating the csync2 directory
 ENV CSYNC2_SYSTEM_DIR=/etc/csync2
-RUN mkdir /etc/csync2 && mv /etc/csync2.cfg /etc/csync2/
+RUN mkdir /etc/csync2 && mv /etc/csync2.cfg $CSYNC2_SYSTEM_DIR/
 
 # install node.js application
 WORKDIR /usr/src/app
