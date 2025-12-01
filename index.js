@@ -7,12 +7,8 @@ const fs = require('node:fs');
 const Mustache = require ('mustache');
 
 // check for mandatory envorinmental variables
-if (!process.env.CSYNC2_KEY_FILE) {
-    console.error (new Date (), 'CSYNC2_KEY_FILE must be set');
-    process.exit (1);
-}
-if (!process.env.FAVRE_TASKS_ENDPOINT) {
-    console.error (new Date (), 'FAVRE_TASKS_ENDPOINT must be defined.');
+if (!process.env.CSYNC2_PSK_FILE) {
+    console.error (new Date (), 'CSYNC2_PSK_FILE must be set');
     process.exit (1);
 }
 
@@ -68,7 +64,7 @@ Mustache.escape = (x) => {return x;};
 // object to render with mustache template
 const cfg = {
     hosts: [],
-    key: process.env.CSYNC2_KEY_FILE,
+    key: process.env.CSYNC2_PSK_FILE,
     includes: includes,
     excludes: excludes,
     auto: process.env.CSYNC2_AUTO,
