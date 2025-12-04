@@ -116,7 +116,7 @@ async function sync () {
     let response = await fetch(`http://${process.env.FAVRE_DOCKER_HOST}/${process.env.FAVRE_DOCKER_API_VERSION}/nodes`);
     // reduce to just hostnames
     const nodes = (await response.json()).map(node => node.Description.Hostname);
-    // cfg.hosts is from the last run
+    // cfg.hosts is from the last run (or empty if this is the first run)
     // if there is a host from the last run that is not in the new array, clean the database
     for (let host of cfg.hosts) {
         if (!nodes.includes(host)) {
@@ -135,7 +135,7 @@ async function sync () {
 // run sync function periodically (won't go faster than every second)
 syncInterval = setInterval (sync, Number.parseInt(process.env.CSYNC2_SYNC_INTERVAL) * 1000 || 1000);
 
-// clean exit
+// clean exit, stopping both the client and the server
 function exit(signal) {
     // acknowledge receipt
     console.log(new Date(), signal, 'received');
