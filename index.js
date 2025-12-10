@@ -5,6 +5,7 @@ import { writeFileSync } from 'node:fs';
 
 import { parse, escape, render } from 'mustache';
 import { globSync } from 'glob';
+import chokidar from 'chokidar';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {

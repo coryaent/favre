@@ -19,6 +19,7 @@
   "homepage": "https://github.com/coryaent/favre#readme",
   "dependencies": {
     "@types/mustache": "^4.2.6",
+    "chokidar": "^5.0.0",
     "glob": "^13.0.0",
     "mustache": "^4.2.0"
   },
