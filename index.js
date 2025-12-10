@@ -1,9 +1,10 @@
 "use strict";
 
-const { spawn, execFileSync } = require('node:child_process');
-const fs = require('node:fs');
+import { spawn, execFileSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
 
-const Mustache = require ('mustache');
+import { parse, escape, render } from 'mustache';
+import { globSync } from 'glob';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {
@@ -11,49 +12,26 @@ if (!process.env.CSYNC2_PSK_FILE) {
     process.exit (1);
 }
 
-if (!process.env.FAVRE_DOCKER_HOST) {
-    console.error (new Date (), 'FAVRE_DOCKER_HOST must be set');
-    process.exit (1);
-}
-
-// check if the key exists and generate a new one if it doesn't
-let keyPath = process.env.CSYNC2_SYSTEM_DIR + '/csync2_ssl_key.pem';
-if (!fs.existsSync(keyPath)) {
-    execFileSync('openssl', ['genrsa', '-out', keyPath, process.env.CSYNC2_SSL_BIT_LENGTH]);
-}
-
-// check if the cert exists and create/sign a new one if it doesn't
-let certPath = process.env.CSYNC2_SYSTEM_DIR + '/csync2_ssl_cert.pem';
-if (!fs.existsSync(certPath)) {
-    // create a new signing request
-    execFileSync('openssl', ['req', '-new',
-        '-key', certPath,
-        '-out', process.env.CSYNC2_SYSTEM_DIR + '/csync2_ssl_cert.csr'
-    ]);
-    // create a new self-signed cert
-    execFileSync('openssl', ['x509', '-req', '-days', process.env.CSYNC2_SSL_EXPIRY_DAYS,
-        '-in', process.env.CSYNC2_SYSTEM_DIR + '/csync2_ssl_cert.csr',
-        '-signkey', keyPath,
-        '-out', certPath
-    ]);
-}
-
 // read multiple INCLUDE and EXCLUDE variables
-const includes = [];
+const includeGlobs = [];
 const excludes = [];
 for (let variable of Object.keys (process.env)) {
     if (variable.startsWith ('CSYNC2_INCLUDE')) {
-        includes.push (process.env[variable]);
+        includeGlobs.push (process.env[variable]);
     }
     if (variable.startsWith ('CSYNC2_EXCLUDE')) {
         excludes.push (process.env[variable]);
     }
 }
-console.log (new Date (), 'Found', includes.length, 'paths to include');
+
+// parse globs from includes to pass to file watcher
+console.log (new Date (), 'Found', includeGlobs.length, 'globs to include');
+const includes = globSync(includeGlobs);
+console.log(new Date(), 'Found', includes.lengeth, 'paths/files to include');
+
+// no need to parse excludes, because these are passed to csync2
 console.log (new Date (), 'Found', excludes.length, 'patterns to exclude');
 
-// this will be used as the holder of the setInterval function output
-let syncInterval;
 // start the csync2 daemon
 const csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
 // exit immediately if the daemon doesn't start successfully
@@ -95,8 +73,8 @@ group swarm {
 }
 `;
 // initialize mustache, no escapes
-Mustache.parse (cfgTemplate);
-Mustache.escape = (x) => {return x;};
+parse (cfgTemplate);
+escape = (x) => {return x;};
 
 // object to render with mustache template
 const cfg = {
@@ -126,8 +104,8 @@ async function sync () {
     }
     // update config for template
     cfg.hosts = nodes;
-    const configFile = Mustache.render(cfgTemplate, cfg);
-    fs.writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+    const configFile = render(cfgTemplate, cfg);
+    writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
     // run the synchronization operation
     execFileSync ('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
 }

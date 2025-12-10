@@ -1,7 +1,7 @@
 {
   "name": "favre",
   "version": "1.0.0",
-  "description": "Run asyncronous file syncronization at a set interval",
+  "description": "Run asyncronous file syncronization on file change",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/coryaent/favre#readme",
   "dependencies": {
+    "@types/mustache": "^4.2.6",
+    "glob": "^13.0.0",
     "mustache": "^4.2.0"
-  }
+  },
+  "type": "module"
 }
