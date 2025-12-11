@@ -28,7 +28,9 @@ for (let variable of Object.keys(process.env)) {
 
 // parse globs from includes to pass to file watcher
 console.log(new Date(), 'Found', includeGlobs.length, 'globs to include');
+console.debug(new Date(), 'includeGlobs', includeGlobs);
 const includes = globSync(includeGlobs);
+console.debug(new Date(), 'includes', includes);
 console.log(new Date(), 'Found', includes.lengeth, 'paths/files to include');
 
 // no need to parse excludes, because these are passed directly to csync2
