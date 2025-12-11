@@ -27,7 +27,7 @@ for (let variable of Object.keys(process.env)) {
 }
 
 // parse globs from includes to pass to file watcher
-console.log (new Date(), 'Found', includeGlobs.length, 'globs to include');
+console.log(new Date(), 'Found', includeGlobs.length, 'globs to include');
 const includes = globSync(includeGlobs);
 console.log(new Date(), 'Found', includes.lengeth, 'paths/files to include');
 
@@ -111,19 +111,18 @@ async function sync () {
         console.debug(new Date(), 'Found remote', remote);
         endpoints.push(remote);
     }
-
-    // cfg.hosts is from the last run (or empty if this is the first run)
-    // if there is a host from the last run that is not in the new array, clean the database
-    for (let host of cfg.hosts) {
-        if (!endpoints.includes(host)) {
-            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
-            break;
-        }
-    }
     
     // run this immediately so that the event loop doesn't interfere
     // i.e. run this synchronously before it can be called again
     process.nextTick(() => {
+        // cfg.hosts is from the last run (or empty if this is the first run)
+        // if there is a host from the last run that is not in the new array, clean the database
+        for (let host of cfg.hosts) {
+            if (!endpoints.includes(host)) {
+                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+                break;
+            }
+        }
         // update config for template
         cfg.hosts = endpoints;
         const configFile = render(cfgTemplate, cfg);
