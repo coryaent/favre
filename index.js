@@ -104,6 +104,8 @@ async function sync () {
     for (let record of aRecords) {
         taskLookups.push(dns.reverse(record.address));
     }
+    console.debug(new Date(), 'aRecords', aRecords);
+    console.debug(new Date(), 'taskLookups', taskLookups);
     // get resolvable task hosts
     const endpoints = [];
     const tasks = await Promise.all(taskLookups);
@@ -113,6 +115,7 @@ async function sync () {
         console.debug(new Date(), 'Found remote', remote);
         endpoints.push(remote);
     }
+    console.debug(new Date(), 'endpoints', endpoints);
     
     // run this immediately so that the event loop doesn't interfere
     // i.e. run this synchronously before it can be called again
@@ -128,6 +131,7 @@ async function sync () {
         // update config for template
         cfg.hosts = endpoints;
         const configFile = Mustache.render(cfgTemplate, cfg);
+        console.debug(new Date(), 'configFile', configFile);
         writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // run the synchronization operation
         execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
