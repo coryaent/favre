@@ -4,7 +4,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 
-import { parse, escape, render } from 'mustache';
+import Mustache from 'mustache';
 import { globSync } from 'glob';
 import chokidar from 'chokidar';
 
@@ -80,8 +80,8 @@ group swarm {
 }
 `;
 // initialize mustache, no escapes
-parse (cfgTemplate);
-escape = (x) => {return x;};
+Mustache.parse (cfgTemplate);
+Mustache.escape = (x) => {return x;};
 
 // object to render with mustache template
 const cfg = {
@@ -127,7 +127,7 @@ async function sync () {
         }
         // update config for template
         cfg.hosts = endpoints;
-        const configFile = render(cfgTemplate, cfg);
+        const configFile = Mustache.render(cfgTemplate, cfg);
         writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // run the synchronization operation
         execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
