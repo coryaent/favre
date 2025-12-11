@@ -55,6 +55,8 @@ watcher.on('all', sync);
 
 // mustache things
 const cfgTemplate = `
+nossl * *;
+
 group swarm {
 
     {{#hosts}}
