@@ -128,7 +128,7 @@ async function sync () {
         // if there is a host from the last run that is not in the new array, clean the database
         for (let host of cfg.hosts) {
             if (!endpoints.includes(host)) {
-                try { execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]); } catch { };
+                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
                 break;
             }
         }
@@ -138,7 +138,7 @@ async function sync () {
         console.debug(new Date(), 'configFile', configFile);
         writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // run the synchronization operation
-        try { execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]); } catch { };
+        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
     });
 }
 
