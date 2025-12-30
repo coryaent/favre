@@ -53,7 +53,7 @@ csync2d.on('exit', exit);
 
 // create the file watcher with chokidar
 let watcher;
-watcher = chokidar.watch([includes]);
+watcher = chokidar.watch(includes);
 // run sync on file changes
 watcher.on('all', sync);
 
