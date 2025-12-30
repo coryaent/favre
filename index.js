@@ -38,14 +38,16 @@ console.log(new Date(), 'Found', excludes.length, 'patterns to exclude');
 
 // start the csync2 daemon
 let csync2d, watcher;
-csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR], {
+    stdio: ['ignore', 'inherit', 'inherit']
+});
 // exit immediately if the daemon doesn't start successfully
 csync2d.on('error', (error) => {
     console.error(new Date(), error);
     process.exit(1);
 });
 // sync once when the daemon successfully starts (the first thing it does is print to the console)
-csync2d.stdout.once('data', () => {
+csync2d.once('spawn', () => {
     console.debug(new Date(), 'daemon started');
     // give the daemon 5000 ms to start
     setTimeout(function start() {
