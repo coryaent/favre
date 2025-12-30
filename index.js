@@ -37,7 +37,7 @@ console.log(new Date(), 'Found', includes.length, 'paths/files to include');
 console.log(new Date(), 'Found', excludes.length, 'patterns to exclude');
 
 // start the csync2 daemon
-let csync2d;
+let csync2d, watcher;
 csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
 // exit immediately if the daemon doesn't start successfully
 csync2d.on('error', (error) => {
@@ -47,16 +47,16 @@ csync2d.on('error', (error) => {
 // sync once when the daemon successfully starts (the first thing it does is print to the console)
 csync2d.stdout.once('data', () => {
     console.debug(new Date(), 'daemon started');
-    setTimeout(sync, 5000);
+    // give the daemon 5000 ms to start
+    setTimeout(function start() {
+        // create the file watcher with chokidar
+        watcher = chokidar.watch(includes);
+        // run sync on file changes
+        watcher.on('all', sync);
+    }, 5000);
 });
 // handle exit, stopping the client
 csync2d.on('exit', exit);
-
-// create the file watcher with chokidar
-let watcher;
-watcher = chokidar.watch(includes);
-// run sync on file changes
-watcher.on('all', sync);
 
 // mustache things
 const cfgTemplate = `
@@ -85,8 +85,8 @@ group swarm {
 }
 `;
 // initialize mustache, no escapes
-Mustache.parse (cfgTemplate);
-Mustache.escape = (x) => {return x;};
+Mustache.parse(cfgTemplate);
+Mustache.escape = (x) => { return x; };
 
 // object to render with mustache template
 const cfg = {
@@ -101,7 +101,7 @@ const cfg = {
 
 
 // main function
-async function sync () {
+async function sync() {
 
     // get peers by IP, hitting the docker dns endpoint
     const taskLookups = [];
