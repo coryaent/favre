@@ -15,9 +15,9 @@ Many of the configuration options available for Csync2 are available for Favre.
 
 `CSYNC2_DB_DIR`: advised to persist with docker volume, default `/var/lib/csync2`; this is where Csync2 stores its state
 
-`CSYNC2_KEY_FILE`: mandatory, no default, should be stored as a docker secret
+`CSYNC2_PSK_FILE`: mandatory, no default, should be stored as a docker secret
 
-`CSYNC2_INCLUDE`: paths to include in the sync; more than one line can be rendered by setting `CSYNC2_INCLUDE_0`, `CSYNC2_INCLUDE_1`, etc.
+`CSYNC2_INCLUDE`: globs to include in the sync; more than one line can be rendered by setting `CSYNC2_INCLUDE_0`, `CSYNC2_INCLUDE_1`, etc.
 
 `CSYNC2_EXCLUDE`: patterns to exclude from sync; more than one line can be rendered in the same manner as `CSYNC2_EXCLUDE_0`, `CSYNC2_EXCLUDE_1`, etc.
 
@@ -25,13 +25,11 @@ Many of the configuration options available for Csync2 are available for Favre.
 
 `CSYNC2_BACKUP_GENERATIONS`: optional, no default
 
-`CSYNC2_SYSTEM_DIR`: optional, defaults to `/run/csync2`
+`CSYNC2_SYSTEM_DIR`: optional, defaults to `/etc/csync2`
 
 `CSYNC2_DAEMON_VERBOSITY`: optional, defaults to `-v`
 
 `CSYNC2_CLIENT_VERBOSITY`: optional, defaults to `-v`
-
-`CSYNC2_SYNC_INTERVAL`: optional, defaults to `3000` (ms)
 
 ## Compose
 It is imperative that `hostname` not be changed. The values from a reverse DNS lookup must be marshalled to match this hostname.
@@ -45,7 +43,7 @@ services:
     secrets:
       - favre_key
     environment:
-      CSYNC2_KEY_FILE: /run/secrets/favre_key
+      CSYNC2_PSK_FILE: /run/secrets/favre_key
       CSYNC2_INCLUDE: /sync
       FAVRE_TASKS_ENDPOINT: "tasks.{{.Service.Name}}."
     networks:
