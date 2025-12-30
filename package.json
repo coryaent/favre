@@ -21,7 +21,8 @@
     "@types/mustache": "^4.2.6",
     "chokidar": "^5.0.0",
     "glob": "^13.0.0",
-    "mustache": "^4.2.0"
+    "mustache": "^4.2.0",
+    "p-retry": "^7.1.1"
   },
   "type": "module"
 }

@@ -7,6 +7,7 @@ import { default as dns } from 'node:dns/promises';
 import Mustache from 'mustache';
 import { globSync } from 'glob';
 import chokidar from 'chokidar';
+import pRetry from 'p-retry';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {
@@ -54,7 +55,7 @@ csync2d.once('spawn', () => {
         // create the file watcher with chokidar
         watcher = chokidar.watch(includes);
         // run sync on file changes
-        watcher.on('all', sync);
+        watcher.on('all', pRetry(sync));
     }, 5000);
 });
 // handle exit, stopping the client
