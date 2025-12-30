@@ -7,7 +7,7 @@ EXPOSE 30865
 # install csync2 debian package
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    csync2 && \
+    csync2=2.0-42-g83b3644-3 && \
     apt-get clean
 
 # debian is weird about respecting this var & creating the csync2 directory,
@@ -29,9 +29,5 @@ ENV CSYNC2_AUTO=younger
 ENV CSYNC2_DB_DIR=/var/lib/csync2
 ENV CSYNC2_DAEMON_VERBOSITY=-v
 ENV CSYNC2_CLIENT_VERBOSITY=-v
-ENV CSYNC2_SYNC_INTERVAL=5
-ENV CSYNC2_SSL_BIT_LENGTH=4096
-ENV CSYNC2_SSL_EXPIRY_DAYS=36500
-ENV FAVRE_DOCKER_API_VERSION=v1.52
 
 ENTRYPOINT ["node", "index.js"]
