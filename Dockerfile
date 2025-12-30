@@ -7,7 +7,7 @@ EXPOSE 30865
 # install csync2 debian package
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    csync2=2.0-42-g83b3644-3 && \
+    csync2 && \
     apt-get clean
 
 # debian is weird about respecting this var & creating the csync2 directory,
