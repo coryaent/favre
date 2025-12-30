@@ -122,29 +122,22 @@ async function sync() {
         endpoints.push(remote);
     }
     
-    // run this immediately so that the event loop doesn't interfere
-    // i.e. run this synchronously before it can be called again
-    process.nextTick(() => {
-        // cfg.hosts is from the last run (or empty if this is the first run)
-        // if there is a host from the last run that is not in the new array, clean the database
-        for (let host of cfg.hosts) {
-            if (!endpoints.includes(host)) {
-                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
-                break;
-            }
+    // cfg.hosts is from the last run (or empty if this is the first run)
+    // if there is a host from the last run that is not in the new array, clean the database
+    for (let host of cfg.hosts) {
+        if (!endpoints.includes(host)) {
+            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+            break;
         }
-        // update config for template
-        cfg.hosts = endpoints;
-        const configFile = Mustache.render(cfgTemplate, cfg);
-        console.debug(new Date(), 'configFile', configFile);
-        try {
-            writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
-            // run the synchronization operation
-            execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
-        } catch (error) {
-            throw new Error('error running csync2 command');
-        }
-    });
+    }
+
+    // update config for template
+    cfg.hosts = endpoints;
+    const configFile = Mustache.render(cfgTemplate, cfg);
+    writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+
+    // run the synchronization operation
+    execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
 }
 
 // clean exit, stopping both the client and the server
