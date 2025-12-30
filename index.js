@@ -46,6 +46,7 @@ csync2d.on('error', (error) => {
 });
 // sync once when the daemon successfully starts (the first thing it does is print to the console)
 csync2d.stdout.once('data', () => {
+    console.debug(new Date(), 'daemon started');
     setTimeout(sync, 5000);
 });
 // handle exit, stopping the client
