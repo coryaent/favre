@@ -31,7 +31,7 @@ console.log(new Date(), 'Found', includeGlobs.length, 'globs to include');
 console.debug(new Date(), 'includeGlobs', includeGlobs);
 const includes = globSync(includeGlobs);
 console.debug(new Date(), 'includes', includes);
-console.log(new Date(), 'Found', includes.lengeth, 'paths/files to include');
+console.log(new Date(), 'Found', includes.length, 'paths/files to include');
 
 // no need to parse excludes, because these are passed directly to csync2
 console.log(new Date(), 'Found', excludes.length, 'patterns to exclude');
@@ -128,7 +128,7 @@ async function sync () {
         // if there is a host from the last run that is not in the new array, clean the database
         for (let host of cfg.hosts) {
             if (!endpoints.includes(host)) {
-                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+                try { execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]); } catch { };
                 break;
             }
         }
@@ -138,7 +138,7 @@ async function sync () {
         console.debug(new Date(), 'configFile', configFile);
         writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
         // run the synchronization operation
-        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+        try { execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]); } catch { };
     });
 }
 
