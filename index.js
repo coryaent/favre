@@ -140,9 +140,13 @@ async function sync() {
         cfg.hosts = endpoints;
         const configFile = Mustache.render(cfgTemplate, cfg);
         console.debug(new Date(), 'configFile', configFile);
-        writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
-        // run the synchronization operation
-        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+        try {
+            writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+            // run the synchronization operation
+            execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+        } catch (error) {
+            console.error(new Date(), 'error running csync2 command');
+        }
     });
 }
 
