@@ -4,15 +4,16 @@ FROM node:24.11.1
 # default port
 EXPOSE 30865
 
-# install dependencies and create directory
+# install csync2 debian package
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    csync2 openssl && \
+    csync2 && \
     apt-get clean
 
-# debian is weird about respecting this var & creating the csync2 directory
+# debian is weird about respecting this var & creating the csync2 directory,
+#   it must be declared explicitly
 ENV CSYNC2_SYSTEM_DIR=/etc/csync2
-RUN mkdir /etc/csync2 && mv /etc/csync2.cfg $CSYNC2_SYSTEM_DIR/
+RUN mkdir -p $CSYNC2_SYSTEM_DIR && mv /etc/csync2.cfg $CSYNC2_SYSTEM_DIR/
 
 # install node.js application
 WORKDIR /usr/src/app
