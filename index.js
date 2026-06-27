@@ -119,8 +119,8 @@ async function sync() {
         let remote = task[0].split('.').slice(0,3).toString().replaceAll(',','.');
         if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
         endpoints.push(remote);
-        if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
     }
+    if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
 
     // use setImmediate to ensure that the tasks lookup is finished
     setImmediate(() => {
