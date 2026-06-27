@@ -53,8 +53,10 @@ csync2d.once('spawn', () => {
     // give the daemon 5000 ms to start
     setTimeout(async function start() {
         // initial sync
+        console.info(new Date(), 'Performing initial sync...');
         await sync();
         // create the file watcher with chokidar
+        console.info(new Date(), 'Initializing flie watcher...');
         watcher = chokidar.watch(includes);
         // run sync on file changes
         watcher.on('all', makeRetriable(sync));
