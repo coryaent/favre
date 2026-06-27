@@ -51,7 +51,9 @@ csync2d.on('error', (error) => {
 csync2d.once('spawn', () => {
     if (process.env.DEBUG) console.debug(new Date(), 'daemon spawned');
     // give the daemon 5000 ms to start
-    setTimeout(function start() {
+    setTimeout(async function start() {
+        // initial sync
+        await sync();
         // create the file watcher with chokidar
         watcher = chokidar.watch(includes);
         // run sync on file changes
