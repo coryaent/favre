@@ -102,10 +102,8 @@ const cfg = {
     backupGenerations: process.env.CSYNC2_BACKUP_GENERATIONS
 };
 
-
 // main function
 async function sync() {
-
     // get peers by IP, hitting the docker dns endpoint
     const taskLookups = [];
     const aRecords = await dns.lookup(process.env.FAVRE_TASKS_ENDPOINT, { all: true });
@@ -123,26 +121,29 @@ async function sync() {
         endpoints.push(remote);
         if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
     }
-    
-    // cfg.hosts is from the last run (or empty if this is the first run)
-    // if there is a host from the last run that is not in the new array, clean the database
-    if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
-    for (let host of cfg.hosts) {
-        if (!endpoints.includes(host)) {
-            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
-            if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
-            break;
+
+    // use setImmediate to ensure that the tasks lookup is finished
+    setImmediate(() => {
+        // cfg.hosts is from the last run (or empty if this is the first run)
+        // if there is a host from the last run that is not in the new array, clean the database
+        if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
+        for (let host of cfg.hosts) {
+            if (!endpoints.includes(host)) {
+                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+                if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
+                break;
+            }
         }
-    }
 
-    // update config for template
-    cfg.hosts = endpoints;
-    const configFile = Mustache.render(cfgTemplate, cfg);
-    if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
-    writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+        // update config for template
+        cfg.hosts = endpoints;
+        const configFile = Mustache.render(cfgTemplate, cfg);
+        if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
+        writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
 
-    // run the synchronization operation
-    execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+        // run the synchronization operation
+        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+    });
 }
 
 // clean exit, stopping both the client and the server
