@@ -115,6 +115,7 @@ async function sync() {
     // get resolvable task hosts
     const endpoints = [];
     const tasks = await Promise.all(taskLookups);
+    if (process.env.DEBUG) console.debug(new Date(), 'tasks:', '\n', tasks);
     for (let task of tasks) {
         // change reverse dns to match hostname
         let remote = task[0].split('.').slice(0,3).toString().replaceAll(',','.');
