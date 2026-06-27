@@ -29,9 +29,9 @@ for (let variable of Object.keys(process.env)) {
 
 // parse globs from includes to pass to file watcher
 console.log(new Date(), 'Found', includeGlobs.length, 'globs to include');
-console.debug(new Date(), 'includeGlobs', includeGlobs);
+if (process.env.DEBUG) console.debug(new Date(), 'includeGlobs', includeGlobs);
 const includes = globSync(includeGlobs);
-console.debug(new Date(), 'includes', includes);
+if (process.env.DEBUG ) console.debug(new Date(), 'includes', includes);
 console.log(new Date(), 'Found', includes.length, 'paths/files to include');
 
 // no need to parse excludes, because these are passed directly to csync2
@@ -49,7 +49,7 @@ csync2d.on('error', (error) => {
 });
 // sync once when the daemon successfully starts (the first thing it does is print to the console)
 csync2d.once('spawn', () => {
-    console.debug(new Date(), 'daemon started');
+    if (process.env.DEBUG) console.debug(new Date(), 'daemon spawned');
     // give the daemon 5000 ms to start
     setTimeout(function start() {
         // create the file watcher with chokidar
@@ -118,15 +118,18 @@ async function sync() {
     for (let task of tasks) {
         // change reverse dns to match hostname
         let remote = task[0].split('.').slice(0,3).toString().replaceAll(',','.');
-        console.debug(new Date(), 'Found remote', remote);
+        if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
         endpoints.push(remote);
+        if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
     }
     
     // cfg.hosts is from the last run (or empty if this is the first run)
     // if there is a host from the last run that is not in the new array, clean the database
+    if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
     for (let host of cfg.hosts) {
         if (!endpoints.includes(host)) {
             execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+            if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
             break;
         }
     }
@@ -134,6 +137,7 @@ async function sync() {
     // update config for template
     cfg.hosts = endpoints;
     const configFile = Mustache.render(cfgTemplate, cfg);
+    if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
     writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
 
     // run the synchronization operation
