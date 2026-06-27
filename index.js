@@ -146,6 +146,7 @@ async function sync() {
         writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
 
         // run the synchronization operation
+        if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
         execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
     });
 }
