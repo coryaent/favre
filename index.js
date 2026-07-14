@@ -1,7 +1,7 @@
 "use strict";
 
 import { spawn, execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 
 import Mustache from 'mustache';
@@ -66,31 +66,7 @@ csync2d.once('spawn', () => {
 csync2d.on('exit', exit);
 
 // mustache things
-const cfgTemplate = `
-nossl * *;
-
-group swarm {
-
-    {{#hosts}}
-    host {{.}};
-    {{/hosts}}
-
-    key {{key}};
-
-    {{#includes}}
-    include {{.}};
-    {{/includes}}
-
-    {{#excludes}}
-    exclude {{.}};
-    {{/excludes}}
-
-    {{#auto}}auto {{.}};{{/auto}}
-
-    {{#backupDirectory}}backup-directory {{.}};{{/backupDirectory}}
-    {{#backupGenerations}}backup-generations {{.}};{{/backupGenerations}}
-}
-`;
+const cfgTemplate = readFileSyc(process.env.CSYNC2_TEMPLATE_FILE, 'utf8');
 // initialize mustache, no escapes
 Mustache.parse(cfgTemplate);
 Mustache.escape = (x) => { return x; };

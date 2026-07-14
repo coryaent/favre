@@ -1,0 +1,23 @@
+nossl * *;
+
+group swarm {
+
+    {{#hosts}}
+    host {{.}};
+    {{/hosts}}
+
+    key {{key}};
+
+    {{#includes}}
+    include {{.}};
+    {{/includes}}
+
+    {{#excludes}}
+    exclude {{.}};
+    {{/excludes}}
+
+    {{#auto}}auto {{.}};{{/auto}}
+
+    {{#backupDirectory}}backup-directory {{.}};{{/backupDirectory}}
+    {{#backupGenerations}}backup-generations {{.}};{{/backupGenerations}}
+}
