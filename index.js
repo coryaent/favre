@@ -39,7 +39,7 @@ console.log(new Date(), 'Found', excludes.length, 'patterns to exclude');
 
 // start the csync2 daemon
 let csync2d, watcher;
-csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR], {
+csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
     stdio: ['ignore', 'inherit', 'inherit']
 });
 // exit immediately if the daemon doesn't start successfully
@@ -109,7 +109,7 @@ async function sync() {
         if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
         for (let host of cfg.hosts) {
             if (!endpoints.includes(host)) {
-                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR]);
+                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
                 if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
                 break;
             }
@@ -123,7 +123,7 @@ async function sync() {
 
         // run the synchronization operation
         if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR], {
+        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
             timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
         });
     });
