@@ -87,19 +87,19 @@ async function sync() {
     // get peers by IP, hitting the docker dns endpoint
     const taskLookups = [];
     const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
-    // for (let record of aRecords) {
-    //     taskLookups.push(dns.reverse(record));
-    // }
+    for (let record of aRecords) {
+        taskLookups.push(dns.reverse(record));
+    }
     // get resolvable task hosts
-    let endpoints = aRecords;
-    // const tasks = await Promise.all(taskLookups);
-    // if (process.env.DEBUG) console.debug(new Date(), 'tasks:', '\n', tasks);
-    // for (let task of tasks) {
-    //     // change reverse dns to match hostname
-    //     let remote = task[0].split('.').slice(0,3).toString().replaceAll(',','.');
-    //     if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
-    //     endpoints.push(remote);
-    // }
+    const endpoints = [];
+    const tasks = await Promise.all(taskLookups);
+    if (process.env.DEBUG) console.debug(new Date(), 'tasks:', '\n', tasks);
+    for (let task of tasks) {
+        // change reverse dns to match hostname
+        let remote = task[0].split('.').slice(0,3).toString().replaceAll(',','.');
+        if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
+        endpoints.push(remote);
+    }
     if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
 
     // use setImmediate to ensure that the tasks lookup is finished
