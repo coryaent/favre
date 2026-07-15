@@ -3,7 +3,7 @@ nossl * *;
 group swarm {
 
     {{#hosts}}
-    host {{.}};
+    host {{.}}@eth0;
     {{/hosts}}
 
     key {{key}};
