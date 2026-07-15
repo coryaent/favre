@@ -66,7 +66,7 @@ csync2d.once('spawn', () => {
 csync2d.on('exit', exit);
 
 // mustache things
-const cfgTemplate = readFileSyc(process.env.CSYNC2_TEMPLATE_FILE, 'utf8');
+const cfgTemplate = readFileSync(process.env.CSYNC2_TEMPLATE_FILE, 'utf8');
 // initialize mustache, no escapes
 Mustache.parse(cfgTemplate);
 Mustache.escape = (x) => { return x; };
