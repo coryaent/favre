@@ -88,7 +88,7 @@ async function sync() {
     const taskLookups = [];
     const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
     for (let record of aRecords) {
-        taskLookups.push(dns.reverse(record.address));
+        taskLookups.push(dns.reverse(record));
     }
     // get resolvable task hosts
     const endpoints = [];
