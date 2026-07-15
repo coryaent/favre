@@ -96,7 +96,7 @@ async function sync() {
     if (process.env.DEBUG) console.debug(new Date(), 'tasks:', '\n', tasks);
     for (let task of tasks) {
         // change reverse dns to match hostname
-        let remote = task[0].split('.').slice(0,3).toString().replaceAll(',','.');
+        let remote = task[0].split('.').slice(2,3).toString();
         if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
         endpoints.push(remote);
     }
