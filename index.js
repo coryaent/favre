@@ -86,7 +86,7 @@ const cfg = {
 async function sync() {
     // get peers by IP, hitting the docker dns endpoint
     const taskLookups = [];
-    const aRecords = await dns.lookup(process.env.FAVRE_TASKS_ENDPOINT, { all: true });
+    const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
     for (let record of aRecords) {
         taskLookups.push(dns.reverse(record.address));
     }
