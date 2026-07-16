@@ -1,5 +1,5 @@
 # debian base
-FROM node:24.13.0
+FROM node:24.13.1
 
 # default port
 EXPOSE 30865
