@@ -31,6 +31,12 @@ Many of the configuration options available for Csync2 are available for Favre.
 
 `CSYNC2_CLIENT_VERBOSITY`: optional, defaults to `-v`
 
+`CSYNC2_PORT`: optional, defaults to `30865`
+
+`CSYNC2_TEMPLATE_FILE`: optional, defaults to a template in the image
+
+`CSYNC2_TIMEOUT`: optional, defaults to `60000` milliseconds
+
 ## Compose
 It is imperative that `hostname` not be changed. The values from a reverse DNS lookup must be marshalled to match this hostname.
 ```yaml
@@ -39,7 +45,7 @@ version: "3.8"
 services:
   sync:
     image: coryaent/favre
-    hostname: "{{.Service.Name}}.{{.Task.Slot}}.{{.Task.ID}}"
+    hostname: "{{.Task.ID}}"
     secrets:
       - favre_key
     environment:

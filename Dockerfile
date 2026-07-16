@@ -24,10 +24,16 @@ COPY ./index.js ./
 # use custom nsswitch
 COPY nsswitch.conf /etc/nsswitch.conf
 
+# copy default config template
+COPY ./Mustache.default /Mustache.default
+
 # default ENV
 ENV CSYNC2_AUTO=younger
 ENV CSYNC2_DB_DIR=/var/lib/csync2
 ENV CSYNC2_DAEMON_VERBOSITY=-v
 ENV CSYNC2_CLIENT_VERBOSITY=-v
+ENV CSYNC2_TIMEOUT=60000
+ENV CSYNC2_TEMPLATE_FILE=/Mustache.default
+ENV CSYNC2_PORT=30865
 
 ENTRYPOINT ["node", "index.js"]
