@@ -8,6 +8,7 @@ import Mustache from 'mustache';
 import { globSync } from 'glob';
 import chokidar from 'chokidar';
 import { waitForPort } from 'wait-port-now';
+import { debounce } from 'perfect-debounce';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {
@@ -48,19 +49,20 @@ csync2d.on('error', (error) => {
     process.exit(1);
 });
 // sync once when the daemon successfully starts (the first thing it does is print to the console)
-csync2d.once('spawn', () => {
-    if (process.env.DEBUG) console.debug(new Date(), 'daemon spawned');
-    // give the daemon 5000 ms to start
-    setTimeout(async function start() {
-        // initial sync
-        console.info(new Date(), 'Performing initial sync...');
-        await sync();
-        // create the file watcher with chokidar
-        console.info(new Date(), 'Initializing flie watcher...');
-        watcher = chokidar.watch(includes);
-        // run sync on file changes
-        watcher.on('all', sync);
-    }, 5000);
+csync2d.once('spawn', async () => {
+    if (process.env.DEBUG) console.debug(new Date(), 'daemon spawned, awaiting port open');
+    // wait for port to be open (daemon is ready)
+    await waitForPort(Number.parseInt(process.env.CSYNC2_PORT));
+    if (process.env.DEBUG) console.debug(new Date(), 'daemon ready');
+    // run initial sync as soon as the daemon is ready
+    console.info(new Date(), 'Performing initial sync...');
+    await sync();
+    // create the file watcher with chokidar
+    console.info(new Date(), 'Initializing flie watcher...');
+    watcher = chokidar.watch(includes);
+    watcher.on('ready', () => { console.info(new Date(), 'File watcher initialized') });
+    // run sync on file changes with a trailing debounce of 25 ms
+    watcher.on('all', debounce(sync, 25));
 });
 // handle exit, stopping the client
 csync2d.on('exit', exit);
@@ -102,30 +104,27 @@ async function sync() {
     }
     if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
 
-    // use setImmediate to ensure that the tasks lookup is finished
-    setImmediate(() => {
-        // cfg.hosts is from the last run (or empty if this is the first run)
-        // if there is a host from the last run that is not in the new array, clean the database
-        if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
-        for (let host of cfg.hosts) {
-            if (!endpoints.includes(host)) {
-                execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
-                if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
-                break;
-            }
+    // cfg.hosts is from the last run (or empty if this is the first run)
+    // if there is a host from the last run that is not in the new array, clean the database
+    if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
+    for (let host of cfg.hosts) {
+        if (!endpoints.includes(host)) {
+            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
+            if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
+            break;
         }
+    }
 
-        // update config for template
-        cfg.hosts = endpoints;
-        const configFile = Mustache.render(cfgTemplate, cfg);
-        if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
-        writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+    // update config for template
+    cfg.hosts = endpoints;
+    const configFile = Mustache.render(cfgTemplate, cfg);
+    if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
+    writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
 
-        // run the synchronization operation
-        if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-        execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
-            timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
-        });
+    // run the synchronization operation
+    if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
+    execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
+        timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
     });
 }
 
