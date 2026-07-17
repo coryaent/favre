@@ -85,6 +85,7 @@ const cfg = {
 };
 
 // main function
+// synchronous calls to csync2 are used to remove any chance of overlapping invocations
 async function sync() {
     // get peers by IP, hitting the docker dns endpoint
     const taskLookups = [];
@@ -109,6 +110,7 @@ async function sync() {
     if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
     for (let host of cfg.hosts) {
         if (!endpoints.includes(host)) {
+            if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
             execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
             if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
             break;
