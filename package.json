@@ -22,7 +22,7 @@
     "chokidar": "^5.0.0",
     "glob": "^13.0.6",
     "mustache": "^4.2.0",
-    "p-retry": "^8.0.0"
+    "wait-port-now": "^1.0.0"
   },
   "type": "module"
 }
