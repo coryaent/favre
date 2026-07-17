@@ -64,7 +64,7 @@ csync2d.once('spawn', async () => {
     // run sync on file changes with a trailing debounce of 25 ms
     watcher.on('all', debounce(sync, 25));
 });
-// handle exit, stopping the client
+// handle exit, stopping the client (watcher)
 csync2d.on('exit', exit);
 
 // mustache things
