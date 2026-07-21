@@ -1,6 +1,6 @@
 "use strict";
 
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, exec } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 
@@ -9,6 +9,7 @@ import { globSync } from 'glob';
 import chokidar from 'chokidar';
 import { waitForPort } from 'wait-port-now';
 import { debounce } from 'perfect-debounce';
+import retry from 'p-retry';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {
@@ -62,7 +63,7 @@ csync2d.once('spawn', async () => {
     watcher = chokidar.watch(includes);
     watcher.once('ready', () => { console.info(new Date(), 'File watcher initialized') });
     // run sync on file changes with a trailing debounce of some ms (100 by default)
-    watcher.on('all', debounce(sync, Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)));
+    watcher.on('all', sync);
 });
 // handle exit, stopping the client (watcher)
 csync2d.on('exit', exit);
@@ -86,7 +87,7 @@ const cfg = {
 
 // main function
 // synchronous calls to csync2 are used to remove any chance of overlapping invocations
-async function sync() {
+const sync = retry(debounce(async () => {
     // get peers by IP, hitting the docker dns endpoint
     const taskLookups = [];
     const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
@@ -111,9 +112,7 @@ async function sync() {
     for (let host of cfg.hosts) {
         if (!endpoints.includes(host)) {
             if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT], {
-                timeout: Number.parseInt(process.env.CSYNC2_REMOVE_TIMEOUT)
-            });
+            await exec('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
             if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
             break;
         }
@@ -127,10 +126,13 @@ async function sync() {
 
     // run the synchronization operation
     if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-    execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
-        timeout: Number.parseInt(process.env.CSYNC2_SYNC_TIMEOUT)
-    });
-}
+    await exec('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT]);
+}, 
+// debounce delay
+Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)
+),
+// p-retry options go here
+);
 
 // clean exit, stopping both the client and the server
 function exit(signal) {
