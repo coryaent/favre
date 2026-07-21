@@ -8,8 +8,8 @@ import Mustache from 'mustache';
 import { globSync } from 'glob';
 import chokidar from 'chokidar';
 import { waitForPort } from 'wait-port-now';
-import { debounce } from 'perfect-debounce';
 import retry from 'p-retry';
+import { debounce } from 'perfect-debounce';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {
@@ -18,53 +18,49 @@ if (!process.env.CSYNC2_PSK_FILE) {
 }
 
 // main function
-// synchronous calls to csync2 are used to remove any chance of overlapping invocations
-const sync = retry(debounce(async () => {
-    // get peers by IP, hitting the docker dns endpoint
-    const taskLookups = [];
-    const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
-    for (let record of aRecords) {
-        taskLookups.push(dns.reverse(record));
-    }
-    // get resolvable task hosts
-    const endpoints = [];
-    const tasks = await Promise.all(taskLookups);
-    if (process.env.DEBUG) console.debug(new Date(), 'tasks:', '\n', tasks);
-    for (let task of tasks) {
-        // change reverse dns to match hostname
-        let remote = task[0].split('.').slice(2,3).toString();
-        if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
-        endpoints.push(remote);
-    }
-    if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
-
-    // cfg.hosts is from the last run (or empty if this is the first run)
-    // if there is a host from the last run that is not in the new array, clean the database
-    if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
-    for (let host of cfg.hosts) {
-        if (!endpoints.includes(host)) {
-            if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-            await exec('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
-            if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
-            break;
+const sync = async () => {
+    return await retry(async () => {
+        // get peers by IP, hitting the docker dns endpoint
+        const taskLookups = [];
+        const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
+        for (let record of aRecords) {
+            taskLookups.push(dns.reverse(record));
         }
-    }
+        // get resolvable task hosts
+        const endpoints = [];
+        const tasks = await Promise.all(taskLookups);
+        if (process.env.DEBUG) console.debug(new Date(), 'tasks:', '\n', tasks);
+        for (let task of tasks) {
+            // change reverse dns to match hostname
+            let remote = task[0].split('.').slice(2,3).toString();
+            if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
+            endpoints.push(remote);
+        }
+        if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
 
-    // update config for template
-    cfg.hosts = endpoints;
-    const configFile = Mustache.render(cfgTemplate, cfg);
-    if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
-    writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+        // cfg.hosts is from the last run (or empty if this is the first run)
+        // if there is a host from the last run that is not in the new array, clean the database
+        if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
+        for (let host of cfg.hosts) {
+            if (!endpoints.includes(host)) {
+                if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
+                await exec('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
+                if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
+                break;
+            }
+        }
 
-    // run the synchronization operation
-    if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-    await exec('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT]);
-}, 
-// debounce delay
-Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)
-),
-// p-retry options go here
-);
+        // update config for template
+        cfg.hosts = endpoints;
+        const configFile = Mustache.render(cfgTemplate, cfg);
+        if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
+        writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+
+        // run the synchronization operation
+        if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
+        await exec('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT]);
+    });
+};
 
 // read multiple INCLUDE and EXCLUDE variables
 const includeGlobs = [];
@@ -112,7 +108,7 @@ csync2d.once('spawn', async () => {
     watcher = chokidar.watch(includes);
     watcher.once('ready', () => { console.info(new Date(), 'File watcher initialized') });
     // run sync on file changes with a trailing debounce of some ms (100 by default)
-    watcher.on('all', sync);
+    watcher.on('all', debounce(sync, Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)));
 });
 // handle exit, stopping the client (watcher)
 csync2d.on('exit', exit);
