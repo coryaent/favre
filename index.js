@@ -111,7 +111,9 @@ async function sync() {
     for (let host of cfg.hosts) {
         if (!endpoints.includes(host)) {
             if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT]);
+            execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT], {
+                timeout: Number.parseInt(process.env.CSYNC2_REMOVE_TIMEOUT)
+            });
             if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
             break;
         }
@@ -126,7 +128,7 @@ async function sync() {
     // run the synchronization operation
     if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
     execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
-        timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
+        timeout: Number.parseInt(process.env.CSYNC2_SYNC_TIMEOUT)
     });
 }
 
