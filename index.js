@@ -61,7 +61,7 @@ csync2d.once('spawn', async () => {
     console.info(new Date(), 'Initializing flie watcher...');
     watcher = chokidar.watch(includes);
     watcher.once('ready', () => { console.info(new Date(), 'File watcher initialized') });
-    // run sync on file changes with a trailing debounce of 25 ms
+    // run sync on file changes with a trailing debounce of some ms (100 by default)
     watcher.on('all', debounce(sync, Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)));
 });
 // handle exit, stopping the client (watcher)
