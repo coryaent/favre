@@ -36,9 +36,7 @@ Many of the configuration options available for Csync2 are available for Favre.
 
 `CSYNC2_TEMPLATE_FILE`: optional, defaults to a template in the image
 
-`CSYNC2_REMOVE_TIMEOUT`: optional, defaults to `5000` milliseconds
-
-`CSYNC2_SYNC_TIMEOUT`: optional, defaults to `60000` milliseconds
+`CSYNC2_TIMEOUT`: optional, defaults to `60000` milliseconds
 
 `FAVRE_DEBOUNCE_DELAY`: optional, defaults to `100` milliseconds
 
