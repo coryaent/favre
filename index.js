@@ -1,6 +1,6 @@
 "use strict";
 
-import { spawn, exec } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 
@@ -44,9 +44,9 @@ const sync = async () => {
         for (let host of cfg.hosts) {
             if (!endpoints.includes(host)) {
                 if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-                await exec('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT], {
+                console.log(execFileSync('csync2', ['-R', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR, '-p', process.env.CSYNC2_PORT], {
                     timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
-                });
+                }));
                 if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
                 break;
             }
@@ -60,9 +60,9 @@ const sync = async () => {
 
         // run the synchronization operation
         if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-        await exec('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
+        console.log(execFileSync('csync2', ['-x', '-r', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
             timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
-        });
+        }));
     });
 };
 
