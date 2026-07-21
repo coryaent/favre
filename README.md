@@ -1,5 +1,4 @@
 # Favre
-[![Codacy grade](https://img.shields.io/codacy/grade/8218e0ae989143c3b4c3cc6a75235756?style=flat-square)](https://app.codacy.com/gh/coryaent/favre/dashboard)
 [![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/github/coryaent/favre?style=flat-square)]([https://libraries.io/github/coryaent/favre](https://img.shields.io/librariesio/github/coryaent/favre
 )
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coryaent/favre/latest?style=flat-square)](https://hub.docker.com/r/coryaent/favre)
@@ -36,6 +35,8 @@ Many of the configuration options available for Csync2 are available for Favre.
 `CSYNC2_TEMPLATE_FILE`: optional, defaults to a template in the image
 
 `CSYNC2_TIMEOUT`: optional, defaults to `60000` milliseconds
+
+`FAVRE_DEBOUNCE_DELAY`: optional, defaults to `100` milliseconds
 
 ## Compose
 It is imperative that `hostname` not be changed. The values from a reverse DNS lookup must be marshalled to match this hostname.
