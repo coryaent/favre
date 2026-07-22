@@ -5,7 +5,6 @@ import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 import { hostname } from 'node:os';
-import { execFileSync } from 'node:child_process';
 
 // 3rd party modules
 import Mustache from 'mustache';
