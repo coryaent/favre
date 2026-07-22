@@ -5,11 +5,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 import { hostname } from 'node:os';
-import { execFile as execFileCallback } from 'node:child_process';
-import { promisify } from 'node:util';
-
-// create a clean interface for calling execFile as a promise
-const execFile = promisify(execFileCallback);
+import { execFileSync } from 'node:child_process';
 
 // 3rd party modules
 import Mustache from 'mustache';
@@ -79,27 +75,13 @@ async function sync () {
     for (let host of cfg.hosts) {
         if (!endpoints.includes(host)) {
             if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-            ({ stdout, stderr } = await retry(() =>
-                {
-                    return execFile('csync2', [
-                    '-R',
-                    process.env.CSYNC2_CLIENT_VERBOSITY,
-                    '-D', process.env.CSYNC2_DB_DIR,
-                    '-p', process.env.CSYNC2_PORT]), {
-                        timeout: Number.parseInt(process.env.FAVRE_MAX_TIMEOUT)
-                    };
-                },
-                {
-                    // p-retry options
-                    minTimeout: Number.parseInt(process.env.FAVRE_MIN_TIMEOUT),
-                    onFailedAttempt: (error) => {
-                        if (process.env.DEBUG) {
-                            console.debug(new Date(), `Database clean attempt ${error.attemptNumber} failed. (${error.code || error.message}).`);
-                            console.debug(new Date(), `${error.retriesLeft} retries left.`)
-                        }
-                    }
-                }
-            ));
+            console.log(new Date(), execFileSync('csync2', [
+                '-R', process.env.CSYNC2_CLIENT_VERBOSITY,
+                '-D', process.env.CSYNC2_DB_DIR,
+                '-p', process.env.CSYNC2_PORT],
+            {
+                timeout: Number.parseInt(process.env.FAVRE_REMOVE_TIMEOUT)
+            }));
             console.log(new Date(), 'stdout:', stdout);
             console.error(new Date(), 'stderr:', stderr);
             if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
@@ -115,29 +97,14 @@ async function sync () {
 
     // run the synchronization operation
     if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-    ({ stdout, stderr } = await retry(() =>
-        {
-            return execFile('csync2', [
-            '-x',
-            '-r',
-            process.env.CSYNC2_CLIENT_VERBOSITY,
-            '-D', process.env.CSYNC2_DB_DIR,
-            '-p', process.env.CSYNC2_PORT]),
-            {
-                timeout: Number.parseInt(process.env.FAVRE_MAX_TIMEOUT)
-            };
-        },
-        {
-            // p-retry options
-            minTimeout: Number.parseInt(process.env.FAVRE_MIN_TIMEOUT),
-            onFailedAttempt: (error) => {
-                if (process.env.DEBUG) {
-                    console.debug(new Date(), `Sync attempt ${error.attemptNumber} failed. (${error.code || error.message}).`);
-                    console.debug(new Date(), `${error.retriesLeft} retries left.`)
-                }
-            }
-        }
-    ));
+    console.log(new Date(), execFileSync('csync2', ['-x',
+        '-r',
+        process.env.CSYNC2_CLIENT_VERBOSITY,
+        '-D', process.env.CSYNC2_DB_DIR,
+        '-p', process.env.CSYNC2_PORT],
+    {
+        timeout: Number.parseInt(process.env.FAVRE_SYNC_TIMEOUT)
+    }));
     console.log(new Date(), 'stdout:', stdout);
     console.error(new Date(), 'stderr:', stderr);
 };
