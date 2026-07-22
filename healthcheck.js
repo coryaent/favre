@@ -1,6 +1,6 @@
 "use strict";
 
-import { execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 
@@ -36,4 +36,22 @@ group test {
 writeFileSync(process.env.CSYNC2_SYSTEM_DIR + '/csync2.cfg', config);
 
 // run the command in dry mode to check if server is healthy
-console.log(execFileSync('csync2', ['-x', '-d', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', testDir,  '-p', process.env.CSYNC2_PORT]));
+let client = spawn('csync2', ['-x',
+    '-d',
+    process.env.CSYNC2_CLIENT_VERBOSITY,
+    '-D', testDir,
+    '-p', process.env.CSYNC2_PORT
+])
+// close the parent process when the client is done, passing along the exit code
+.on('close', (code) => {
+    process.exit(code);
+});
+
+// handle healtcheck timeouts and failures
+function stop(signal) {
+    // stop the currently running client command
+    client.kill();
+}
+
+// handle SIGKILL as passed from Docker if the healthcheck timeout is reached
+process.on('SIGKILL', stop);
