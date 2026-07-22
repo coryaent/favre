@@ -157,7 +157,14 @@ csync2d.once('spawn', async () => {
     watcher.on('all', debounce(sync, Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)));
 });
 // handle exit, stopping the client (watcher)
-csync2d.on('exit', exit);
+// isExiting gets set when the 'exit' function is called
+let exitCalled = false;
+csync2d.on('exit', (code, signal) => {
+    if (exitCalled) return;
+    // csync2d is exiting without the exit function being called!
+    console.error(new Date(), `csync2 daemon died unexpectedly. Code: ${code}, Signal: ${signal}`);
+    process.exit(code ?? 1);
+});
 
 // mustache things
 const cfgTemplate = readFileSync(process.env.CSYNC2_TEMPLATE_FILE, 'utf8');
@@ -178,6 +185,10 @@ const cfg = {
 
 // clean exit, stopping both the client and the server
 function exit(signal) {
+    // check current status, doing nothing if already exiting
+    if (exitCalled) return;
+    exitCalled = true;
+
     // acknowledge receipt
     console.log(new Date(), signal, 'received');
     console.log(new Date(), 'Exiting...');
