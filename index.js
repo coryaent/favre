@@ -1,10 +1,17 @@
 "use strict";
 
+// built-in modules
 import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 import { hostname } from 'node:os';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
 
+// create a clean interface for calling execFile as a promise
+const execFile = promisify(execFileCallback);
+
+// 3rd party modules
 import Mustache from 'mustache';
 import { globSync } from 'glob';
 import chokidar from 'chokidar';
@@ -21,6 +28,8 @@ if (!process.env.CSYNC2_PSK_FILE) {
 // main function
 async function sync () {
     if (process.env.DEBUG) console.debug(new Date(), 'Checking endpoint', process.env.FAVRE_TASKS_ENDPOINT, '...');
+    // used to store execFile outputs
+    let stdout, stderr;
     // get peers by IP, hitting the docker dns endpoint
     let aRecords;
     const taskLookups = [];
@@ -70,13 +79,29 @@ async function sync () {
     for (let host of cfg.hosts) {
         if (!endpoints.includes(host)) {
             if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-            console.log(new Date(), execFileSync('csync2', [
-                '-R', process.env.CSYNC2_CLIENT_VERBOSITY,
-                '-D', process.env.CSYNC2_DB_DIR,
-                '-p', process.env.CSYNC2_PORT],
-            {
-                timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
-            }));
+            ({ stdout, stderr } = await retry(() =>
+                {
+                    return execFile('csync2', [
+                    '-R',
+                    process.env.CSYNC2_CLIENT_VERBOSITY,
+                    '-D', process.env.CSYNC2_DB_DIR,
+                    '-p', process.env.CSYNC2_PORT]), {
+                        timeout: Number.parseInt(process.env.FAVRE_MAX_TIMEOUT)
+                    };
+                },
+                {
+                    // p-retry options
+                    minTimeout: Number.parseInt(process.env.FAVRE_MIN_TIMEOUT),
+                    onFailedAttempt: (error) => {
+                        if (process.env.DEBUG) {
+                            console.debug(new Date(), `Database clean attempt ${error.attemptNumber} failed. (${error.code || error.message}).`);
+                            console.debug(new Date(), `${error.retriesLeft} retries left.`)
+                        }
+                    }
+                }
+            ));
+            console.log(new Date(), 'stdout:', stdout);
+            console.error(new Date(), 'stderr:', stderr);
             if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
             break;
         }
@@ -90,14 +115,31 @@ async function sync () {
 
     // run the synchronization operation
     if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-    console.log(new Date(), execFileSync('csync2', ['-x',
-        '-r',
-        process.env.CSYNC2_CLIENT_VERBOSITY,
-        '-D', process.env.CSYNC2_DB_DIR,
-        '-p', process.env.CSYNC2_PORT],
-    {
-        timeout: Number.parseInt(process.env.CSYNC2_TIMEOUT)
-    }));
+    ({ stdout, stderr } = await retry(() =>
+        {
+            return execFile('csync2', [
+            '-x',
+            '-r',
+            process.env.CSYNC2_CLIENT_VERBOSITY,
+            '-D', process.env.CSYNC2_DB_DIR,
+            '-p', process.env.CSYNC2_PORT]),
+            {
+                timeout: Number.parseInt(process.env.FAVRE_MAX_TIMEOUT)
+            };
+        },
+        {
+            // p-retry options
+            minTimeout: Number.parseInt(process.env.FAVRE_MIN_TIMEOUT),
+            onFailedAttempt: (error) => {
+                if (process.env.DEBUG) {
+                    console.debug(new Date(), `Sync attempt ${error.attemptNumber} failed. (${error.code || error.message}).`);
+                    console.debug(new Date(), `${error.retriesLeft} retries left.`)
+                }
+            }
+        }
+    ));
+    console.log(new Date(), 'stdout:', stdout);
+    console.error(new Date(), 'stderr:', stderr);
 };
 
 // read multiple INCLUDE and EXCLUDE variables
