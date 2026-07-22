@@ -3,6 +3,7 @@
 import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
+import { hostname } from 'node:os';
 
 import Mustache from 'mustache';
 import { globSync } from 'glob';
@@ -56,6 +57,10 @@ async function sync () {
         let remote = task[0].split('.').slice(2,3).toString();
         if (process.env.DEBUG) console.debug(new Date(), 'Found remote', remote);
         endpoints.push(remote);
+    }
+    // add this host if needed
+    if (!endpoints.includes(hostname())) {
+        endpoints.push(hostname());
     }
     if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
 
