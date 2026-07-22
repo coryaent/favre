@@ -39,6 +39,6 @@ ENV FAVRE_DEBOUNCE_DELAY=100
 ENV FAVRE_TMP_SUBFOLDER=/favre
 
 # default HEALTHCHECK
-HEALTHCHECK --start-period=10s CMD ["node", "healthcheck.js"]
+HEALTHCHECK --start-period=5s CMD ["node", "healthcheck.js"]
 
 ENTRYPOINT ["node", "index.js"]

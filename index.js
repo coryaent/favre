@@ -9,6 +9,7 @@ import { globSync } from 'glob';
 import chokidar from 'chokidar';
 import { waitForPort } from 'wait-port-now';
 import { debounce } from 'perfect-debounce';
+import retry from 'p-retry';
 
 // check for mandatory envorinmental variables
 if (!process.env.CSYNC2_PSK_FILE) {
@@ -18,9 +19,31 @@ if (!process.env.CSYNC2_PSK_FILE) {
 
 // main function
 async function sync () {
+    if (process.env.DEBUG) console.debug(new Date(), 'Checking endpoint', process.env.FAVRE_TASKS_ENDPOINT, '...');
     // get peers by IP, hitting the docker dns endpoint
+    let aRecords;
     const taskLookups = [];
-    const aRecords = await dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
+    // check to see if there are any healthy containers
+    try {
+        aRecords = await retry(() => {
+            return dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
+        }, {
+            // p-retry options
+            onFailedAttempt: (error) => {
+                if (process.env.DEBUG) {
+                    console.debug(new Date(), `DNS lookup attempt ${error.attemptNumber} failed. (${error.code || error.message}).`);
+                    console.debug(new Date(), `${error.retriesLeft} retries left.`)
+                }
+            }
+        });
+    } catch (error) {
+        if (error.code == "ENOTFOUND") {
+            // no healthy containers were found after all retry attempts
+            if (process.env.DEBUG) console.debug(new Date(), 'No healthy containers found.');
+            // cleanly bail
+            exit();
+        }
+    }
     for (let record of aRecords) {
         taskLookups.push(dns.reverse(record));
     }
