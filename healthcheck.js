@@ -1,7 +1,7 @@
 "use strict";
 
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 
 // convenience variables
@@ -11,6 +11,10 @@ const testFile = testDir + '/test.txt';
 // redifine system directory to avoid conflicts with main process
 // keep this seperate from testDir to avoid something wonky like trying to csync2 -x the database
 process.env.CSYNC2_SYSTEM_DIR = tmpdir() + '/csync2';
+
+// create the requisite directories
+mkdirSync(testDir);
+mkdirSync(process.env.CSYNC2_SYSTEM_DIR);
 
 // write "favre" to test file
 writeFileSync(testFile, 'favre');
