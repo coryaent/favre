@@ -44,9 +44,9 @@ ENV FAVRE_TMP_SUBFOLDER=/favre
 
 # default HEALTHCHECK
 HEALTHCHECK --start-period=5s \
-    --interval=60s \
-    --timeout=60s \
-    --retries=5 \
+    --interval=90s \
+    --timeout=75s \
+    --retries=4 \
     CMD ["node", "healthcheck.js"]
 
 ENTRYPOINT ["node", "index.js"]
