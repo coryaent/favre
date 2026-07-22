@@ -23,8 +23,6 @@ if (!process.env.CSYNC2_PSK_FILE) {
 // main function
 async function sync () {
     if (process.env.DEBUG) console.debug(new Date(), 'Checking endpoint', process.env.FAVRE_TASKS_ENDPOINT, '...');
-    // used to store execFile outputs
-    let stdout, stderr;
     // get peers by IP, hitting the docker dns endpoint
     let aRecords;
     const taskLookups = [];
@@ -83,9 +81,7 @@ async function sync () {
                 '-p', process.env.CSYNC2_PORT],
             {
                 timeout: Number.parseInt(process.env.FAVRE_REMOVE_TIMEOUT)
-            }));
-            console.log(new Date(), 'stdout:', stdout);
-            console.error(new Date(), 'stderr:', stderr);
+            }).toString());
             if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
             break;
         }
@@ -106,9 +102,7 @@ async function sync () {
         '-p', process.env.CSYNC2_PORT],
     {
         timeout: Number.parseInt(process.env.FAVRE_SYNC_TIMEOUT)
-    }));
-    console.log(new Date(), 'stdout:', stdout);
-    console.error(new Date(), 'stderr:', stderr);
+    }).toString());
 };
 
 // read multiple INCLUDE and EXCLUDE variables
