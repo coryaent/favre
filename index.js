@@ -129,7 +129,7 @@ console.log(new Date(), 'Found', includes.length, 'paths/files to include');
 console.log(new Date(), 'Found', excludes.length, 'patterns to exclude');
 
 // start the csync2 daemon
-let csync2d, watcher;
+let csync2d, watcher, interval;
 csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
     stdio: ['pipe', 'inherit', 'inherit']
 });
@@ -152,11 +152,18 @@ csync2d.once('spawn', async () => {
     // create the file watcher with chokidar
     console.info(new Date(), 'Initializing flie watcher...');
     watcher = chokidar.watch(includes);
-    watcher.once('ready', () => { console.info(new Date(), 'File watcher initialized') });
+    watcher.once('ready', () => { 
+        console.info(new Date(), 'File watcher initialized');
+        if (process.env.FAVRE_POLL_INTERVAL) {
+            console.info(new Date(), 'Starting backup poll...');
+            interval = setInterval(sync, Number.parseInt(process.env.FAVRE_POLL_INTERVAL));
+            console.info(new Date(), 'Backup poll started.');
+        }
+    });
     // run sync on file changes with a trailing debounce of some ms (100 by default)
     watcher.on('all', debounce(sync, Number.parseInt(process.env.FAVRE_DEBOUNCE_DELAY)));
 });
-// handle exit, stopping the client (watcher)
+// handle exit, stopping the client (watcher) and the daemon and the poll
 // isExiting gets set when the 'exit' function is called
 let exitCalled = false;
 csync2d.on('exit', (code, signal) => {
@@ -202,6 +209,11 @@ function exit(signal) {
     // stop the daemon
     if (csync2d) {
         csync2d.kill();
+    }
+
+    // stop the pollster
+    if (interval) {
+        clearInterval(interval);
     }
 }
 

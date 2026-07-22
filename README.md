@@ -36,9 +36,21 @@ Many of the configuration options available for Csync2 are available for Favre.
 
 `CSYNC2_TEMPLATE_FILE`: optional, defaults to a template in the image
 
-`CSYNC2_TIMEOUT`: optional, defaults to `60000` milliseconds
+`FAVRE_DEBOUNCE_DELAY`: optional; wait this long after a file change is detected before calling `sync()`; defaults to `100` milliseconds
 
-`FAVRE_DEBOUNCE_DELAY`: optional, defaults to `100` milliseconds
+`FAVRE_START_DELAY`: optional; waits some milliseconds after the daemon is spawned before the clients start; defaults to `5000` milliseconds
+
+`FAVRE_REMOVE_TIMEOUT`: optional; timeout for removing unused hosts from the database; defaults to `7500` milliseconds
+
+`FAVRE_SYNC_TIMEOUT`: optional; timeout for sync'ing files; defaults to `90000` milliseconds
+
+`FAVRE_LOOKUP_ATTEMPTS`: optional; how many times should the client attempt to discover its swarm peers; defaults to `5`
+
+`FAVRE_LOOKUP_TIMEOUT`: optional; how long to wait between service discovery queries; defaults to `3000` milliseconds
+
+`FAVRE_TMP_SUBFOLDER`: optional; where the healthcheck puts its test file; defaults to `/favre`
+
+`FAVRE_POLL_INTERVAL`: optional; set an interval for regular sync'ing independent of the file watcher; defaults to `undefined`
 
 ## Compose
 It is imperative that `hostname` not be changed. The values from a reverse DNS lookup must be marshalled to match this hostname.
