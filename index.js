@@ -87,7 +87,7 @@ async function sync () {
             '-D', process.env.CSYNC2_DB_DIR,
             '-p', process.env.CSYNC2_PORT
         ], {
-            stdio: ['ignore', 'inherit', 'inherit'],
+            stdio: ['pipe', 'inherit', 'inherit'],
             timeout: Number.parseInt(process.env.FAVRE_REMOVE_TIMEOUT)
         });
     }
@@ -101,7 +101,7 @@ async function sync () {
         '-D', process.env.CSYNC2_DB_DIR,
         '-p', process.env.CSYNC2_PORT
     ], {
-        stdio: ['ignore', 'inherit', 'inherit'],
+        stdio: ['pipe', 'inherit', 'inherit'],
         timeout: Number.parseInt(process.env.FAVRE_SYNC_TIMEOUT)
     });
 };
@@ -131,7 +131,7 @@ console.log(new Date(), 'Found', excludes.length, 'patterns to exclude');
 // start the csync2 daemon
 let csync2d, watcher;
 csync2d = spawn ('csync2', ['-ii', process.env.CSYNC2_DAEMON_VERBOSITY, '-D', process.env.CSYNC2_DB_DIR,  '-p', process.env.CSYNC2_PORT], {
-    stdio: ['ignore', 'inherit', 'inherit']
+    stdio: ['pipe', 'inherit', 'inherit']
 });
 // exit immediately if the daemon doesn't start successfully
 csync2d.on('error', (error) => {
