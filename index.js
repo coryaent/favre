@@ -1,10 +1,11 @@
 "use strict";
 
 // built-in modules
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { default as dns } from 'node:dns/promises';
 import { hostname } from 'node:os';
+import { setTimeout } from 'timers/promises';
 
 // 3rd party modules
 import Mustache from 'mustache';
@@ -81,26 +82,28 @@ async function sync () {
     // prune old hosts
     if (droppedHosts.length > 0) {
         if (process.env.DEBUG) console.debug('Pruning csync2 database...');
-        console.log(new Date(), execFileSync('csync2', ['-R',
+        spawnSync('csync2', ['-R',
             process.env.CSYNC2_CLIENT_VERBOSITY,
             '-D', process.env.CSYNC2_DB_DIR,
-            '-p', process.env.CSYNC2_PORT],
-        {
+            '-p', process.env.CSYNC2_PORT
+        ], {
+            stdio: ['ignore', 'inherit', 'inherit'],
             timeout: Number.parseInt(process.env.FAVRE_REMOVE_TIMEOUT)
-        }).toString());
+        });
     }
 
 
     // run the synchronization operation
     if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
-    console.log(new Date(), execFileSync('csync2', ['-x',
+    spawnSync('csync2', ['-x',
         '-r',
         process.env.CSYNC2_CLIENT_VERBOSITY,
         '-D', process.env.CSYNC2_DB_DIR,
-        '-p', process.env.CSYNC2_PORT],
-    {
+        '-p', process.env.CSYNC2_PORT
+    ], {
+        stdio: ['ignore', 'inherit', 'inherit'],
         timeout: Number.parseInt(process.env.FAVRE_SYNC_TIMEOUT)
-    }).toString());
+    });
 };
 
 // read multiple INCLUDE and EXCLUDE variables
@@ -137,10 +140,12 @@ csync2d.on('error', (error) => {
 });
 // sync once when the daemon successfully starts (the first thing it does is print to the console)
 csync2d.once('spawn', async () => {
-    if (process.env.DEBUG) console.debug(new Date(), 'daemon spawned, awaiting port open');
+    if (process.env.DEBUG) console.debug(new Date(), 'Daemon spawned, awaiting port open...');
     // wait for port to be open (daemon is ready)
     await waitForPort(Number.parseInt(process.env.CSYNC2_PORT));
-    if (process.env.DEBUG) console.debug(new Date(), 'daemon ready');
+    if (process.env.DEBUG) console.debug(new Date(), 'Port', process.env.CSYNC2_PORT, 'ready');
+    // wait just a bit before starting DNS poll in sync() function
+    await setTimeout(Number.parseInt(process.env.FAVRE_START_DELAY));
     // run initial sync as soon as the daemon is ready
     console.info(new Date(), 'Performing initial sync...');
     await sync();
