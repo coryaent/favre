@@ -34,6 +34,9 @@ async function sync () {
             return dns.resolve4(process.env.FAVRE_TASKS_ENDPOINT);
         }, {
             // p-retry options
+            factor: 1,
+            minTimeout: Number.parseInt(process.env.FAVRE_LOOKUP_TIMEOUT),
+            retries: Number.parseInt(process.env.FAVRE_LOOKUP_ATTEMPTS),
             onFailedAttempt: (error) => {
                 if (process.env.DEBUG) {
                     console.debug(new Date(), `DNS lookup attempt ${error.attemptNumber} failed. (${error.code || error.message}).`);
