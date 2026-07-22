@@ -19,7 +19,7 @@ RUN mkdir -p $CSYNC2_SYSTEM_DIR && mv /etc/csync2.cfg $CSYNC2_SYSTEM_DIR/
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
-COPY ./index.js ./
+COPY ./index.js ./healthcheck.js ./
 
 # use custom nsswitch
 COPY nsswitch.conf /etc/nsswitch.conf
@@ -32,9 +32,13 @@ ENV CSYNC2_AUTO=younger
 ENV CSYNC2_DB_DIR=/var/lib/csync2
 ENV CSYNC2_DAEMON_VERBOSITY=-v
 ENV CSYNC2_CLIENT_VERBOSITY=-v
-ENV CSYNC2_TIMEOUT=60000
+ENV CSYNC2_TIMEOUT=120000
 ENV CSYNC2_TEMPLATE_FILE=/Mustache.default
 ENV CSYNC2_PORT=30865
 ENV FAVRE_DEBOUNCE_DELAY=100
+ENV FAVRE_TMP_SUBFOLDER=/favre
+
+# default HEALTHCHECK
+HEALTHCHECK --start-period=10s CMD ["node", "healthcheck.js"]
 
 ENTRYPOINT ["node", "index.js"]
