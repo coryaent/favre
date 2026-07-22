@@ -32,4 +32,4 @@ group test {
 writeFileSync(process.env.CSYNC2_SYSTEM_DIR + '/csync2.cfg', config);
 
 // run the command in dry mode to check if server is healthy
-execFileSync('csync2', ['-x', '-d', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', testDir,  '-p', process.env.CSYNC2_PORT]);
+console.log(execFileSync('csync2', ['-x', '-d', process.env.CSYNC2_CLIENT_VERBOSITY, '-D', testDir,  '-p', process.env.CSYNC2_PORT]));
