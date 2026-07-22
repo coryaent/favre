@@ -69,29 +69,27 @@ async function sync () {
     }
     if (process.env.DEBUG) console.debug(new Date(), 'endpoints:', '\n', endpoints);
 
-    // cfg.hosts is from the last run (or empty if this is the first run)
-    // if there is a host from the last run that is not in the new array, clean the database
     if (process.env.DEBUG) console.debug(new Date(), 'cfg.hosts:', '\n', cfg.hosts);
-    for (let host of cfg.hosts) {
-        if (!endpoints.includes(host)) {
-            if (process.env.DEBUG) console.debug(new Date(), 'Cleaning database...');
-            console.log(new Date(), execFileSync('csync2', [
-                '-R', process.env.CSYNC2_CLIENT_VERBOSITY,
-                '-D', process.env.CSYNC2_DB_DIR,
-                '-p', process.env.CSYNC2_PORT],
-            {
-                timeout: Number.parseInt(process.env.FAVRE_REMOVE_TIMEOUT)
-            }).toString());
-            if (process.env.DEBUG) console.debug(new Date(), 'Database cleaned');
-            break;
-        }
-    }
+    const droppedHosts = cfg.hosts.filter(host => !endpoints.includes(host));
+    if (process.env.DEBUG) console.debug(new Date(), 'droppedHosts:', droppedHosts);
 
-    // update config for template
     cfg.hosts = endpoints;
     const configFile = Mustache.render(cfgTemplate, cfg);
     if (process.env.DEBUG) console.debug(new Date(), 'configFile:', '\n', configFile);
     writeFileSync(`${process.env.CSYNC2_SYSTEM_DIR}/csync2.cfg`, configFile);
+
+    // prune old hosts
+    if (droppedHosts.length > 0) {
+        if (process.env.DEBUG) console.debug('Pruning csync2 database...');
+        console.log(new Date(), execFileSync('csync2', ['-R',
+            process.env.CSYNC2_CLIENT_VERBOSITY,
+            '-D', process.env.CSYNC2_DB_DIR,
+            '-p', process.env.CSYNC2_PORT],
+        {
+            timeout: Number.parseInt(process.env.FAVRE_REMOVE_TIMEOUT)
+        }).toString());
+    }
+
 
     // run the synchronization operation
     if (process.env.DEBUG) console.debug(new Date(), 'Running csync2...');
