@@ -41,10 +41,13 @@ let client = spawn('csync2', ['-x',
     process.env.CSYNC2_CLIENT_VERBOSITY,
     '-D', testDir,
     '-p', process.env.CSYNC2_PORT
-])
+], {
+    // using pipe for stdin allows the child to be killed when the parent receives SIGKILL
+    stdio: ['pipe', 'inherit', 'inherit']
+})
 // close the parent process when the client is done, passing along the exit code
-.on('close', (code) => {
-    process.exit(code);
+.on('exit', (code) => {
+    process.exit(code ?? 1);
 });
 
 // handle healtcheck timeouts and failures
@@ -53,5 +56,6 @@ function stop(signal) {
     client.kill();
 }
 
-// handle SIGKILL as passed from Docker if the healthcheck timeout is reached
-process.on('SIGKILL', stop);
+// handle these signals gracefully even though they should never be received
+process.on('SIGTERM', stop);
+process.on('SIGINT', stop);
